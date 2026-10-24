@@ -12,3 +12,12 @@ man/figures/crow_screenshots
 *_.new.png
 cache/
 .library
+.R/library/
+*.Rcheck/
+result
+result-*
+.direnv/
+/.github/privacy.md
+/.nvim.lua
+/.vscode/extensions.json
+/.vscode/settings.json

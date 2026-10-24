@@ -4,20 +4,20 @@ describe("roxy_tag_crowExamplesShiny", {
   example <- brio::read_file(
     fs::path_package(
       package = "crow",
-      "examples", "shiny2screenshot", "example", ext = "R"
+      "examples",
+      "shiny2screenshot",
+      "example",
+      ext = "R"
     )
   )
   it(
     "can be parsed",
     expect_snapshot(roxygen2::parse_text(example)[[1]]$tags)
   )
-  it(
-    "can be formatted",
-    {
-      topic <- roxygen2::roc_proc_text(roxygen2::rd_roclet(), example)[[1]]
-      expect_snapshot(topic$get_section("examples"))
-    }
-  )
+  it("can be formatted", {
+    topic <- roxygen2::roc_proc_text(roxygen2::rd_roclet(), example)[[1]]
+    expect_snapshot(topic$get_section("examples"))
+  })
 })
 # unnecessary wrapper, but otherwise skip has global scope,
 # see #32
@@ -30,23 +30,20 @@ test_that("get_screenshot_works", {
     announce_snapshot_file(name = name)
     skip_if_load_all2()
     path <- withr::local_tempfile(fileext = ".png")
-    it(
-      "can record a screenshot",
-      {
-        get_screenshot_from_app(counter_button_app(), file = path)
-        expect_snapshot_file(
-          path = path,
-          name = name,
-          variant = variant
-        )
-      }
-    )
+    it("can record a screenshot", {
+      get_screenshot_from_app(counter_button_app(), file = path)
+      expect_snapshot_file(
+        path = path,
+        name = name,
+        variant = variant
+      )
+    })
   })
 })
 
 test_that("screenshots fail according to `strict` setting", {
   expect_equal(
-    # messages must be supressed,
+    # messages must be suppressed,
     # otherwise snapshot gets polluted with timestamps
     suppressMessages(
       get_screenshot_from_app(counter_button_app(), name = "does_not_exist")
@@ -72,33 +69,33 @@ describe("roxy_tag_crowInsertSnaps", {
   single <- brio::read_file(
     fs::path_package(
       package = "crow",
-      "examples", "snaps2fig", "single", ext = "R"
+      "examples",
+      "snaps2fig",
+      "single",
+      ext = "R"
     )
   )
   it(
     "can be parsed",
     expect_snapshot(roxygen2::parse_text(single)[[1]]$tags)
   )
-  it(
-    "can be formatted with single tag",
-    {
-      topic <- roxygen2::roc_proc_text(roxygen2::rd_roclet(), single)[[1]]
-      expect_snapshot(topic$get_section("crowInsertSnaps"))
-    }
-  )
+  it("can be formatted with single tag", {
+    topic <- roxygen2::roc_proc_text(roxygen2::rd_roclet(), single)[[1]]
+    expect_snapshot(topic$get_section("crowInsertSnaps"))
+  })
   multiple <- brio::read_file(
     fs::path_package(
       package = "crow",
-      "examples", "snaps2fig", "multiple", ext = "R"
+      "examples",
+      "snaps2fig",
+      "multiple",
+      ext = "R"
     )
   )
-  it(
-    "can be formatted with multiple tags joined",
-    {
-      topic <- roxygen2::roc_proc_text(roxygen2::rd_roclet(), multiple)[[1]]
-      expect_snapshot(topic$get_section("crowInsertSnaps"))
-    }
-  )
+  it("can be formatted with multiple tags joined", {
+    topic <- roxygen2::roc_proc_text(roxygen2::rd_roclet(), multiple)[[1]]
+    expect_snapshot(topic$get_section("crowInsertSnaps"))
+  })
 })
 
 describe("dir_ls_snaps", {

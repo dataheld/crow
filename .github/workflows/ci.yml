@@ -1,0 +1,71 @@
+name: CI
+on:
+  pull_request:
+  push:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.ref_name != 'main' }}
+jobs:
+  nullkomma:
+    needs: [secret-history, macos-tests]
+    uses: dataheld/nullkomma/.github/workflows/ci.yml@bed72bda58ef1cab44921e81e36c633ae8bbdb94
+    with:
+      visibility: unlisted
+    permissions:
+      contents: read
+      id-token: write
+  secret-history:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: DeterminateSystems/determinate-nix-action@v3
+      - run: nix develop --command secret-history
+  macos-tests:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: DeterminateSystems/determinate-nix-action@v3
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+        with:
+          chrome-version: 155.0.8059.85
+      - name: Test the installed package with Chrome
+        env:
+          CHROMOTE_CHROME: ${{ steps.chrome.outputs.chrome-path }}
+        run: nix develop --command check r-testthat --installed
+  website:
+    needs: [nullkomma, secret-history, macos-tests]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: DeterminateSystems/determinate-nix-action@v3
+      - uses: DeterminateSystems/flakehub-cache-action@v3
+      - name: Build pkgdown website
+        run: nix build .#site --print-build-logs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pkgdown website
+          path: result/
+          include-hidden-files: true
+      - name: Publish to Cloudflare Pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN_PAGES }}
+          accountId: ${{ vars.CLOUDFLARE_ACCOUNT_ID_HELDEN18DE }}
+          projectName: crow
+          directory: result/
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
