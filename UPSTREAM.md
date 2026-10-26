@@ -20,12 +20,3 @@ In crow's Linux sandbox tests, missing fonts produced an almost empty
 counter screenshot, 20 pixels high instead of 56.
 Crow supplies Liberation and DejaVu fonts through a browser wrapper.
 Upstream should provide fonts for reproducible browser screenshots.
-
-## macOS CI follow-up
-
-macOS runners are temporarily excluded at the user's request.
-Local browser tests remain enabled through
-`nix develop --command check r-testthat --installed`.
-Restore CI coverage in [crow#52](https://github.com/dataheld/crow/issues/52).
-The browser startup and runner-version findings are recorded in
-[dataheld/nullkomma#255](https://github.com/dataheld/nullkomma/issues/255).
