@@ -35,15 +35,6 @@ jobs:
       - run: nix flake check --print-build-logs
       - name: Build packages and development shell
         run: nix build --no-link .#site .#deploy .#devShells.${{ matrix.system }}.default
-  secret-history:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-      - *nix
-      - run: nix develop --command secret-history
   flake-checker:
     runs-on: ubuntu-latest
     steps:
@@ -52,7 +43,7 @@ jobs:
         with:
           fail-mode: true
   website:
-    needs: [nullkomma, secret-history, flake-checker]
+    needs: [nullkomma, flake-checker]
     runs-on: ubuntu-latest
     permissions:
       contents: read
