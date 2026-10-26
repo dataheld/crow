@@ -33,3 +33,9 @@ consider an [extra dependency](https://pak.r-lib.org/reference/package-dependenc
 ```DESCRIPTION
 Config/Needs/website: dataheld/crow
 ```
+
+## Coding agents
+
+This repository is also an [Agent Plugin](https://agent-plugins.org).
+Its `add-shiny-module` skill teaches agents to build, test and document modules with crow,
+for example after `/plugin install https://github.com/dataheld/crow` in Copilot.
