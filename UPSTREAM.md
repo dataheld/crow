@@ -21,16 +21,6 @@ counter screenshot, 20 pixels high instead of 56.
 Crow supplies Liberation and DejaVu fonts through a browser wrapper.
 Upstream should provide fonts for reproducible browser screenshots.
 
-## Unlisted FlakeHub publication
-
-The current reusable CI workflow no longer accepts `visibility`.
-It selects public or private publication from repository visibility,
-so using it would lose the explicitly requested unlisted publication.
-Crow uses a project workflow with an explicit unlisted publication step
-and Linux-only CI matrix.
-Upstream should restore an explicit publication-visibility input and
-support selecting CI systems independently of local flake checks.
-
 ## macOS CI follow-up
 
 macOS runners are temporarily excluded at the user's request.
