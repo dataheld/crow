@@ -28,6 +28,10 @@
         # CI and deployment use project-owned workflows.
         nullkomma.github.enable = false;
         nullkomma.r.enable = true;
+        nullkomma.r.shiny = {
+          enable = true;
+          function = "counter_button_app";
+        };
         nullkomma.r.pkgdown.brand.enable = true;
         nullkomma.r.allowOffNixpkgs = true;
         nullkomma.r.check.args = [
