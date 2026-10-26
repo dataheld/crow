@@ -36,7 +36,7 @@ jobs:
       - uses: browser-actions/setup-chrome@v2
         id: chrome
         with:
-          chrome-version: 155.0.8059.85
+          chrome-version: 156.0.8078.47
       - name: Test the installed package with Chrome
         env:
           CHROMOTE_CHROME: ${{ steps.chrome.outputs.chrome-path }}
@@ -46,7 +46,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      deployments: write
     steps:
       - uses: actions/checkout@v7
         with:
@@ -60,12 +59,3 @@ jobs:
           name: pkgdown website
           path: result/
           include-hidden-files: true
-      - name: Publish to Cloudflare Pages
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: cloudflare/pages-action@v1
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN_PAGES }}
-          accountId: ${{ vars.CLOUDFLARE_ACCOUNT_ID_HELDEN18DE }}
-          projectName: crow
-          directory: result/
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}

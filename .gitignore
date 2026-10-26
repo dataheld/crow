@@ -11,12 +11,14 @@ man/figures/crow_screenshots
 # {shinytest2}: Ignore new debug snapshots for `$expect_values()`
 *_.new.png
 cache/
-.library
-.R/library/
 *.Rcheck/
 result
 result-*
 .direnv/
+/.nullkomma/cloudflare/
+/.nullkomma/processes/
+/.agents/skills/nullkomma-resolve-file-conflicts
+/.agents/skills/nullkomma-upgrade
 /.github/privacy.md
 /.nvim.lua
 /.vscode/extensions.json

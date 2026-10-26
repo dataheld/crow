@@ -6,7 +6,6 @@
     nixpkgs.follows = "nullkomma/nixpkgs";
     brand = {
       url = "https://flakehub.com/f/dataheld/brand/*";
-      inputs.nullkomma.follows = "nullkomma";
     };
   };
 
@@ -20,9 +19,15 @@
           removeAttrs config.allSystems.aarch64-darwin.checks [ "r-testthat" ]
         );
         nullkomma.brand = inputs.brand;
-        # Keep the existing Pages deployment and its credentials.
+        nullkomma.cloudflare = {
+          enable = true;
+          domain = "maxheld.de";
+          worker = "crow";
+        };
+        # CI and deployment use project-owned workflows.
         nullkomma.github.enable = false;
-        nullkomma.r-non-nix.enable = true;
+        nullkomma.r.enable = true;
+        nullkomma.r.pkgdown.brand.enable = true;
         nullkomma.r.allowOffNixpkgs = true;
         nullkomma.r.check.args = [
           "--no-manual"
@@ -71,12 +76,6 @@
               _R_CHECK_PKG_SIZES_THRESHOLD_ = "10";
               _R_CHECK_EXCESSIVE_IMPORTS_ = "40";
             };
-            nullkomma.files.".Renviron".text = lib.mkAfter ''
-              _R_CHECK_PKG_SIZES_THRESHOLD_=10
-              _R_CHECK_EXCESSIVE_IMPORTS_=40
-              SHINYTEST2_LOAD_TIMEOUT=16000
-              SHINYTEST2_TIMEOUT=8000
-            '';
             nullkomma.checks = {
               r-cmd-check.command = lib.mkBefore testEnvironment;
               r-testthat.command = lib.mkBefore (
