@@ -4,8 +4,9 @@
   inputs = {
     nullkomma.url = "https://flakehub.com/f/dataheld/nullkomma/0.1.*";
     nixpkgs.follows = "nullkomma/nixpkgs";
-    brand = {
-      url = "https://flakehub.com/f/dataheld/brand/*";
+    maxheld = {
+      url = "https://flakehub.com/f/dataheld/maxheld/*";
+      inputs.nullkomma.follows = "nullkomma";
     };
   };
 
@@ -14,11 +15,11 @@
     inputs.nullkomma.lib.mkFlake { inherit inputs; } (
       { config, lib, ... }:
       {
-        # macOS Chrome needs the login user; CI runs this check outside the Nix builder.
+        # macOS Chrome needs the login user; run its browser tests in nix develop.
         flake.checks.aarch64-darwin = lib.mkForce (
           removeAttrs config.allSystems.aarch64-darwin.checks [ "r-testthat" ]
         );
-        nullkomma.brand = inputs.brand;
+        nullkomma.brand = inputs.maxheld;
         nullkomma.cloudflare = {
           enable = true;
           domain = "maxheld.de";
@@ -37,7 +38,7 @@
         nullkomma.r.hashes.rdtools = "sha256-8BQ/3Vdl1vndn4BNdoHfjo4TP4ioBWv3Y1bZu22ej70=";
 
         perSystem =
-          { pkgs, ... }:
+          { config, pkgs, ... }:
           let
             testEnvironment = ''
               export SHINYTEST2_LOAD_TIMEOUT=16000 SHINYTEST2_TIMEOUT=8000
@@ -70,14 +71,10 @@
                 text = "export NULLKOMMA_R_NIX=true";
               })
             ];
-            nullkomma.devShell.env = {
-              SHINYTEST2_LOAD_TIMEOUT = "16000";
-              SHINYTEST2_TIMEOUT = "8000";
-              _R_CHECK_PKG_SIZES_THRESHOLD_ = "10";
-              _R_CHECK_EXCESSIVE_IMPORTS_ = "40";
-            };
+            nullkomma.devShell.shellHook = testEnvironment;
             nullkomma.checks = {
               r-cmd-check.command = lib.mkBefore testEnvironment;
+              r-testthat.packages = [ config.nullkomma.r.package ];
               r-testthat.command = lib.mkBefore (
                 testEnvironment
                 + ''

@@ -1,49 +1,6 @@
 {
   "nodes": {
-    "brand": {
-      "inputs": {
-        "nixpkgs": [
-          "brand",
-          "nullkomma",
-          "nixpkgs"
-        ],
-        "nullkomma": "nullkomma"
-      },
-      "locked": {
-        "lastModified": 1792768557,
-        "narHash": "sha256-RO4zqZolbuOeq1G1pO8JTAHNfjMckh2I856PG/mfdlc=",
-        "rev": "9b30b65c6a4a782d8845a0b1f857cd5434e04940",
-        "revCount": 15,
-        "type": "tarball",
-        "url": "https://api.flakehub.com/f/pinned/dataheld/brand/0.1.15%2Brev-9b30b65c6a4a782d8845a0b1f857cd5434e04940/01a1695a-42ef-73d2-8fa4-222bad88f84c/source.tar.gz"
-      },
-      "original": {
-        "type": "tarball",
-        "url": "https://flakehub.com/f/dataheld/brand/%2A"
-      }
-    },
     "flake-parts": {
-      "inputs": {
-        "nixpkgs-lib": [
-          "brand",
-          "nullkomma",
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1790898470,
-        "narHash": "sha256-zTwuwezD0w3hpga6a6P8emidzAZFyWqlNeRBlpWOOl8=",
-        "rev": "024633cd702b10285db5cb19b40ad48d2399ba60",
-        "revCount": 497,
-        "type": "tarball",
-        "url": "https://api.flakehub.com/f/pinned/hercules-ci/flake-parts/0.1.497%2Brev-024633cd702b10285db5cb19b40ad48d2399ba60/01a0fb23-e4db-78b2-9625-e9cb19ce9ac8/source.tar.gz"
-      },
-      "original": {
-        "type": "tarball",
-        "url": "https://flakehub.com/f/hercules-ci/flake-parts/0.1.%2A"
-      }
-    },
-    "flake-parts_2": {
       "inputs": {
         "nixpkgs-lib": [
           "nullkomma",
@@ -77,20 +34,6 @@
         "url": "https://flakehub.com/f/DeterminateSystems/flake-schemas/0.5.%2A"
       }
     },
-    "flake-schemas_2": {
-      "locked": {
-        "lastModified": 1780327564,
-        "narHash": "sha256-HiRPtA0spK+Dkgbhz/1zW9glXxNVB+L4Rj2VYmdawb8=",
-        "rev": "6cc9bd98891b1fc6bb2b8cb3277df8bc72799ca6",
-        "revCount": 149,
-        "type": "tarball",
-        "url": "https://api.flakehub.com/f/pinned/DeterminateSystems/flake-schemas/0.5.0/019e83cf-9af3-78b1-ac5b-70e68ad1efe1/source.tar.gz"
-      },
-      "original": {
-        "type": "tarball",
-        "url": "https://flakehub.com/f/DeterminateSystems/flake-schemas/0.5.%2A"
-      }
-    },
     "import-tree": {
       "locked": {
         "lastModified": 1784254960,
@@ -106,36 +49,50 @@
         "type": "github"
       }
     },
-    "import-tree_2": {
+    "maxheld": {
+      "inputs": {
+        "modern2-cv": "modern2-cv",
+        "nixpkgs": [
+          "maxheld",
+          "nullkomma",
+          "nixpkgs"
+        ],
+        "nullkomma": [
+          "nullkomma"
+        ],
+        "pillar": "pillar"
+      },
       "locked": {
-        "lastModified": 1784254960,
-        "narHash": "sha256-iI88R3wHz8wTKQb5orvpc51L/Xr64AJyxid/0MKa/b8=",
-        "owner": "vic",
-        "repo": "import-tree",
-        "rev": "4ebb10ae17d5f1ad366e7aef5b92cb8eecf24f69",
+        "lastModified": 1793032852,
+        "narHash": "sha256-17Ah7o/NJb1Te81TKDDfgtSumV9QJ8RRhnNV8qE4ZP8=",
+        "rev": "83c05ac1282b2add9516117102c2a561d709b27e",
+        "revCount": 220,
+        "type": "tarball",
+        "url": "https://api.flakehub.com/f/pinned/dataheld/maxheld/0.1.220%2Brev-83c05ac1282b2add9516117102c2a561d709b27e/01a1791d-37f5-7b53-b196-0de5224abeae/source.tar.gz"
+      },
+      "original": {
+        "type": "tarball",
+        "url": "https://flakehub.com/f/dataheld/maxheld/%2A"
+      }
+    },
+    "modern2-cv": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1730144289,
+        "narHash": "sha256-g26OWmYGlcMH0n0nrGxM/qXbHnQAcc16ZKRy2KaEWBw=",
+        "owner": "schochastics",
+        "repo": "modern2-cv",
+        "rev": "14147a8da77a7afafe9140c7ef32f2cccaddcfcb",
         "type": "github"
       },
       "original": {
-        "owner": "vic",
-        "repo": "import-tree",
+        "owner": "schochastics",
+        "repo": "modern2-cv",
+        "rev": "14147a8da77a7afafe9140c7ef32f2cccaddcfcb",
         "type": "github"
       }
     },
     "nixpkgs": {
-      "locked": {
-        "lastModified": 1791353474,
-        "narHash": "sha256-v72qr4LsSz61tQki/41nHKZKPY6NSeZavtGlAInOCng=",
-        "rev": "2efa67fd26b6df417c33e4603185c701f260dd83",
-        "revCount": 1015818,
-        "type": "tarball",
-        "url": "https://api.flakehub.com/f/pinned/NixOS/nixpkgs/0.2605.1015818%2Brev-2efa67fd26b6df417c33e4603185c701f260dd83/01a11777-646c-7ac3-9a38-941658c52e27/source.tar.gz"
-      },
-      "original": {
-        "type": "tarball",
-        "url": "https://flakehub.com/f/NixOS/nixpkgs/0.2605.%2A"
-      }
-    },
-    "nixpkgs_2": {
       "locked": {
         "lastModified": 1791353474,
         "narHash": "sha256-v72qr4LsSz61tQki/41nHKZKPY6NSeZavtGlAInOCng=",
@@ -155,7 +112,6 @@
         "flake-schemas": "flake-schemas",
         "nixpkgs": "nixpkgs",
         "nixpkgs-r": [
-          "brand",
           "nullkomma",
           "nixpkgs"
         ],
@@ -163,35 +119,6 @@
         "terranix": "terranix",
         "treefmt-nix": "treefmt-nix",
         "up": "up"
-      },
-      "locked": {
-        "lastModified": 1792765921,
-        "narHash": "sha256-UYYAV+euzKdmIlIzRav3WmhQXjjC8aXlSsdm90DCmLk=",
-        "owner": "dataheld",
-        "repo": "nullkomma",
-        "rev": "c0472461009131a23065588c709d4c14da849f72",
-        "type": "github"
-      },
-      "original": {
-        "owner": "dataheld",
-        "repo": "nullkomma",
-        "rev": "c0472461009131a23065588c709d4c14da849f72",
-        "type": "github"
-      }
-    },
-    "nullkomma_2": {
-      "inputs": {
-        "flake-parts": "flake-parts_2",
-        "flake-schemas": "flake-schemas_2",
-        "nixpkgs": "nixpkgs_2",
-        "nixpkgs-r": [
-          "nullkomma",
-          "nixpkgs"
-        ],
-        "terraform-providers-bin": "terraform-providers-bin_2",
-        "terranix": "terranix_2",
-        "treefmt-nix": "treefmt-nix_2",
-        "up": "up_2"
       },
       "locked": {
         "lastModified": 1793051552,
@@ -206,32 +133,34 @@
         "url": "https://flakehub.com/f/dataheld/nullkomma/0.1.%2A"
       }
     },
+    "pillar": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1687682392,
+        "narHash": "sha256-QFjaC3QfxTGGt3JcPYeuNaZMRvo7bOMIHHyqzCoEpHs=",
+        "owner": "xriley",
+        "repo": "pillar-theme",
+        "rev": "dbe51083f1566b748c7b3cf81f3d1069b634608e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "xriley",
+        "repo": "pillar-theme",
+        "rev": "dbe51083f1566b748c7b3cf81f3d1069b634608e",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
-        "brand": "brand",
+        "maxheld": "maxheld",
         "nixpkgs": [
           "nullkomma",
           "nixpkgs"
         ],
-        "nullkomma": "nullkomma_2"
+        "nullkomma": "nullkomma"
       }
     },
     "systems": {
-      "locked": {
-        "lastModified": 1681028828,
-        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
-        "owner": "nix-systems",
-        "repo": "default",
-        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nix-systems",
-        "repo": "default",
-        "type": "github"
-      }
-    },
-    "systems_2": {
       "locked": {
         "lastModified": 1681028828,
         "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
@@ -262,32 +191,14 @@
         "type": "github"
       }
     },
-    "terraform-providers-bin_2": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1789698037,
-        "narHash": "sha256-8/ihOyBtmanPd3qB6HkTi11KeW0bg4dnRIGfrzoo+kQ=",
-        "owner": "nix-community",
-        "repo": "nixpkgs-terraform-providers-bin",
-        "rev": "6f5dbe9186d4a26da7c8a554b45260aa95e24add",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nix-community",
-        "repo": "nixpkgs-terraform-providers-bin",
-        "type": "github"
-      }
-    },
     "terranix": {
       "inputs": {
         "flake-parts": [
-          "brand",
           "nullkomma",
           "flake-parts"
         ],
         "import-tree": "import-tree",
         "nixpkgs": [
-          "brand",
           "nullkomma",
           "nixpkgs"
         ],
@@ -307,55 +218,7 @@
         "type": "github"
       }
     },
-    "terranix_2": {
-      "inputs": {
-        "flake-parts": [
-          "nullkomma",
-          "flake-parts"
-        ],
-        "import-tree": "import-tree_2",
-        "nixpkgs": [
-          "nullkomma",
-          "nixpkgs"
-        ],
-        "systems": "systems_2"
-      },
-      "locked": {
-        "lastModified": 1790023441,
-        "narHash": "sha256-9vmOUIearXFJbafvJjEd8yaQQV/dKN2J5t3rC92Hi+Y=",
-        "owner": "terranix",
-        "repo": "terranix",
-        "rev": "cb9dd00fe24f3f1323baaa19b5ee5fb514d37d77",
-        "type": "github"
-      },
-      "original": {
-        "owner": "terranix",
-        "repo": "terranix",
-        "type": "github"
-      }
-    },
     "treefmt-nix": {
-      "inputs": {
-        "nixpkgs": [
-          "brand",
-          "nullkomma",
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1791203292,
-        "narHash": "sha256-vuzVwvjeucSnwKwMBpyP8r5IzdrMKCHEdwTrRFwUN7I=",
-        "rev": "03d8ee1bcbc8f9638907bb79edb9673151d0e22b",
-        "revCount": 593,
-        "type": "tarball",
-        "url": "https://api.flakehub.com/f/pinned/numtide/treefmt-nix/0.1.593%2Brev-03d8ee1bcbc8f9638907bb79edb9673151d0e22b/01a10d28-fe85-7ba0-9d91-820ac13e70a3/source.tar.gz"
-      },
-      "original": {
-        "type": "tarball",
-        "url": "https://flakehub.com/f/numtide/treefmt-nix/0.1.%2A"
-      }
-    },
-    "treefmt-nix_2": {
       "inputs": {
         "nixpkgs": [
           "nullkomma",
@@ -376,32 +239,6 @@
       }
     },
     "up": {
-      "inputs": {
-        "flake-schemas": [
-          "brand",
-          "nullkomma",
-          "flake-schemas"
-        ],
-        "nixpkgs": [
-          "brand",
-          "nullkomma",
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1776825590,
-        "narHash": "sha256-v8Au0RfOD3CpfB208+J+9Wmyak8VBMzvjGMrxZFiGT0=",
-        "rev": "9679e3e9157c510033038497235790cee46e2a18",
-        "revCount": 130,
-        "type": "tarball",
-        "url": "https://api.flakehub.com/f/pinned/DeterminateSystems/up/0.1.130%2Brev-9679e3e9157c510033038497235790cee46e2a18/019db30f-74b2-7d20-90f1-f92b7f56621a/source.tar.gz"
-      },
-      "original": {
-        "type": "tarball",
-        "url": "https://flakehub.com/f/DeterminateSystems/up/0.1.%2A"
-      }
-    },
-    "up_2": {
       "inputs": {
         "flake-schemas": [
           "nullkomma",
