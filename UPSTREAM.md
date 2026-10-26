@@ -11,12 +11,3 @@ off-nixpkgs package derivations in `modules/lang/r/package.nix`.
 Crow retains an elf build-input setup hook to set it during installation.
 Upstream should supply the flag when building remote R packages.
 This hook does not enable non-Nix R support in crow.
-
-## Linux screenshot fonts
-
-Nullkomma's default browser is plain `pkgs.chromium`, without a
-Fontconfig configuration.
-In crow's Linux sandbox tests, missing fonts produced an almost empty
-counter screenshot, 20 pixels high instead of 56.
-Crow supplies Liberation and DejaVu fonts through a browser wrapper.
-Upstream should provide fonts for reproducible browser screenshots.
