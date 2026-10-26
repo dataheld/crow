@@ -1,4 +1,4 @@
-# roxy_tag_crowExamplesShiny: can be parsed
+# roxy_tag_crowExamplesShiny / can be parsed
 
     Code
       roxygen2::parse_text(example)[[1]]$tags
@@ -19,7 +19,7 @@
       [<text>:  4] @backref '<generated>' {parsed}
       
 
-# roxy_tag_crowExamplesShiny: can be formatted
+# roxy_tag_crowExamplesShiny / can be formatted
 
     Code
       topic$get_section("examples")
@@ -37,7 +37,7 @@
       }
       } 
 
-# roxy_tag_crowInsertSnaps: can be parsed
+# roxy_tag_crowInsertSnaps / can be parsed
 
     Code
       roxygen2::parse_text(single)[[1]]$tags
@@ -58,7 +58,7 @@
       [<text>:  7] @backref '<generated>' {parsed}
       
 
-# roxy_tag_crowInsertSnaps: can be formatted with single tag
+# roxy_tag_crowInsertSnaps / can be formatted with single tag
 
     Code
       topic$get_section("crowInsertSnaps")
@@ -73,7 +73,7 @@
         }
       } 
 
-# roxy_tag_crowInsertSnaps: can be formatted with multiple tags joined
+# roxy_tag_crowInsertSnaps / can be formatted with multiple tags joined
 
     Code
       topic$get_section("crowInsertSnaps")
@@ -90,7 +90,7 @@
         }
       } 
 
-# snaps2fig and friends work: writes out markdown syntax
+# snaps2fig and friends work / writes out markdown syntax
 
     Code
       res

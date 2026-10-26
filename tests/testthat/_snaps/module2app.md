@@ -43,7 +43,7 @@
         <pre class="shiny-text-output noplaceholder" id="inputs-eval"></pre>
         <h2>Module UI</h2>
         <div id="crow-module2app-module-ui">
-          <button id="test_object-button" type="button" class="btn btn-default action-button">Counter</button>
+          <button id="test_object-button" type="button" class="btn btn-default action-button"><span class="action-label">Counter</span></button>
           <pre class="shiny-text-output noplaceholder" id="test_object-out"></pre>
         </div>
         <h2>Server Return Values</h2>
@@ -86,7 +86,7 @@
       <pre class="shiny-text-output noplaceholder" id="inputs-eval"></pre>
       <h2>Module UI</h2>
       <div id="crow-module2app-module-ui">
-        <button id="test_object-button" type="button" class="btn btn-default action-button">Counter</button>
+        <button id="test_object-button" type="button" class="btn btn-default action-button"><span class="action-label">Counter</span></button>
         <pre class="shiny-text-output noplaceholder" id="test_object-out"></pre>
       </div>
       <h2>Server Return Values</h2>

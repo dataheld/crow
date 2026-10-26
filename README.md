@@ -13,7 +13,6 @@ It can help with:
 - 📖 documentation
 - ... and more
 
-
 ## Installation
 
 ```r

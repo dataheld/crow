@@ -33,13 +33,15 @@
 #' @inheritDotParams shiny::shinyApp
 #' @family modules
 #' @export
-module2app <- function(module_ui = NULL,
-                       module_server = NULL,
-                       ui_args = list(),
-                       server_args = list(),
-                       ui_wrapper = shiny::basicPage,
-                       options = list(test.mode = TRUE),
-                       ...) {
+module2app <- function(
+  module_ui = NULL,
+  module_server = NULL,
+  ui_args = list(),
+  server_args = list(),
+  ui_wrapper = shiny::basicPage,
+  options = list(test.mode = TRUE),
+  ...
+) {
   res <- shiny::shinyApp(
     ui = module2app_ui(module_ui, ui_args, ui_wrapper = ui_wrapper),
     server = module2app_server(module_server, server_args),
@@ -70,11 +72,15 @@ module2app <- function(module_ui = NULL,
 #' @example inst/examples/module2app/ui/navbar.R
 #' @example inst/examples/module2app/ui/bootstrap.R
 #' @export
-module2app_ui <- function(module_ui = NULL,
-                          ui_args = list(),
-                          ui_wrapper = shiny::basicPage) {
+module2app_ui <- function(
+  module_ui = NULL,
+  ui_args = list(),
+  ui_wrapper = shiny::basicPage
+) {
   checkmate::assert_function(module_ui, args = c("id"), null.ok = TRUE)
-  if (is.null(module_ui)) module_ui <- no_fun_provided_ui
+  if (is.null(module_ui)) {
+    module_ui <- no_fun_provided_ui
+  }
   checkmate::assert_list(ui_args)
   module_ui <- purrr::partial(module_ui, !!!ui_args)
   ui_wrapper(
@@ -252,7 +258,9 @@ filter_tree_shinytag <- function(x) {
     x,
     leaf = function(x) {
       # this is the equivalent to no print output to the console
-      if (is_shinytag(x)) x <- character(0)
+      if (is_shinytag(x)) {
+        x <- character(0)
+      }
       x
     }
   )
@@ -319,9 +327,11 @@ counter_button_ui <- function(id, label = "Counter") {
 #' @param increment_by
 #' A reactive, giving the value to increment the counter by.
 #' @export
-counter_button_server <- function(id,
-                                  set_to = 0L,
-                                  increment_by = shiny::reactiveVal(1L)) {
+counter_button_server <- function(
+  id,
+  set_to = 0L,
+  increment_by = shiny::reactiveVal(1L)
+) {
   abort_if_reactive(set_to)
   abort_if_not_reactive(increment_by)
   shiny::moduleServer(

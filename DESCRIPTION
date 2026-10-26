@@ -24,6 +24,8 @@ Encoding: UTF-8
 LazyData: true
 Language: en
 Roxygen: list(markdown = TRUE)
+Depends:
+    R (>= 4.1.0)
 Imports:
     checkmate,
     fs,
@@ -33,6 +35,7 @@ Imports:
     shiny,
     testthat
 Suggests:
+    bsicons,
     bslib,
     brio,
     htmltools,
@@ -47,3 +50,5 @@ Remotes:
 Config/testthat/edition: 3
 Config/testthat/parallel: true
 Config/Needs/website: rmarkdown
+Config/Needs/development: devtools, servr, usethis
+RoxygenNote: 7.3.3

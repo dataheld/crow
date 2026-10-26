@@ -1,0 +1,69 @@
+name: CI
+on:
+  pull_request:
+  push:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.ref_name != 'main' }}
+jobs:
+  nullkomma:
+    # Restore macOS runners in https://github.com/dataheld/crow/issues/52.
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - system: x86_64-linux
+            runner: ubuntu-latest
+          - system: aarch64-linux
+            runner: ubuntu-24.04-arm
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - &checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - &nix
+        uses: DeterminateSystems/determinate-nix-action@v3
+      - &cache
+        uses: DeterminateSystems/flakehub-cache-action@v3
+      - run: nix flake check --print-build-logs
+      - name: Build packages and development shell
+        run: nix build --no-link .#site .#deploy .#devShells.${{ matrix.system }}.default
+  flake-checker:
+    runs-on: ubuntu-latest
+    steps:
+      - *checkout
+      - uses: DeterminateSystems/flake-checker-action@v14
+        with:
+          fail-mode: true
+  website:
+    needs: [nullkomma, flake-checker]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - *checkout
+      - *nix
+      - *cache
+      - name: Build pkgdown website
+        run: nix build .#site --print-build-logs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pkgdown website
+          path: result/
+          include-hidden-files: true
+      - name: Publish public flake
+        if: >-
+          ${{ !github.event.repository.fork && github.event_name == 'push' && (github.ref == format('refs/heads/{0}', github.event.repository.default_branch) || startsWith(github.ref, 'refs/tags/')) }}
+        uses: DeterminateSystems/flakehub-push@v7
+        with:
+          rolling: ${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
+          visibility: public
+          include-output-paths: true
