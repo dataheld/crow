@@ -33,7 +33,6 @@
           function = "counter_button_app";
         };
         nullkomma.r.pkgdown.brand.enable = true;
-        nullkomma.r.allowOffNixpkgs = true;
         nullkomma.r.check.args = [
           "--no-manual"
           "--ignore-vignettes"
@@ -42,7 +41,7 @@
         nullkomma.r.hashes.rdtools = "sha256-8BQ/3Vdl1vndn4BNdoHfjo4TP4ioBWv3Y1bZu22ej70=";
 
         perSystem =
-          { config, pkgs, ... }:
+          { config, ... }:
           let
             testEnvironment = ''
               export SHINYTEST2_LOAD_TIMEOUT=16000 SHINYTEST2_TIMEOUT=8000
@@ -51,30 +50,6 @@
             '';
           in
           {
-            nullkomma.r.browser = lib.mkIf pkgs.stdenv.isLinux (
-              pkgs.writeShellApplication {
-                name = "crow-chromium";
-                text = ''
-                  export FONTCONFIG_FILE=${
-                    pkgs.makeFontsConf {
-                      fontDirectories = [
-                        pkgs.liberation_ttf
-                        pkgs.dejavu_fonts
-                      ];
-                    }
-                  }
-                  exec ${lib.getExe pkgs.chromium} "$@"
-                '';
-              }
-            );
-            # Elf's native-R profile must not hide Nix's build dependencies.
-            nullkomma.r.buildInputs.elf = [
-              (pkgs.writeTextFile {
-                name = "elf-nix-startup";
-                destination = "/nix-support/setup-hook";
-                text = "export NULLKOMMA_R_NIX=true";
-              })
-            ];
             nullkomma.devShell.shellHook = testEnvironment;
             nullkomma.checks = {
               r-cmd-check.command = lib.mkBefore testEnvironment;
