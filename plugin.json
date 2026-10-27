@@ -1,0 +1,6 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "crow",
+  "description": "Build, test and document shiny modules with crow's helpers.",
+  "repository": "https://github.com/dataheld/crow"
+}
