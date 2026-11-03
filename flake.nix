@@ -17,7 +17,7 @@
       {
         # macOS Chrome needs the login user; run its browser tests in nix develop.
         flake.checks.aarch64-darwin = lib.mkForce (
-          removeAttrs config.allSystems.aarch64-darwin.checks [ "r-testthat" ]
+          removeAttrs config.allSystems.aarch64-darwin.checks [ "r-test" ]
         );
         nullkomma.brand = inputs.maxheld;
         nullkomma.cloudflare = {
@@ -33,35 +33,38 @@
           function = "counter_button_app";
         };
         nullkomma.r.pkgdown.brand.enable = true;
-        nullkomma.r.check.args = [
-          "--no-manual"
-          "--ignore-vignettes"
-          "--no-tests"
-        ];
         nullkomma.r.hashes.rdtools = "sha256-8BQ/3Vdl1vndn4BNdoHfjo4TP4ioBWv3Y1bZu22ej70=";
 
         perSystem =
-          { config, ... }:
+          { system, ... }:
           let
-            testEnvironment = ''
-              export SHINYTEST2_LOAD_TIMEOUT=16000 SHINYTEST2_TIMEOUT=8000
-              export _R_CHECK_PKG_SIZES_THRESHOLD_=10 _R_CHECK_EXCESSIVE_IMPORTS_=40
-              export TESTTHAT_CPUS=1
-            '';
+            testEnvironment = {
+              SHINYTEST2_LOAD_TIMEOUT = "16000";
+              SHINYTEST2_TIMEOUT = "8000";
+              _R_CHECK_PKG_SIZES_THRESHOLD_ = "10";
+              _R_CHECK_EXCESSIVE_IMPORTS_ = "40";
+              TESTTHAT_CPUS = "1";
+            };
           in
           {
-            nullkomma.devShell.shellHook = testEnvironment;
-            nullkomma.checks = {
-              r-cmd-check.command = lib.mkBefore testEnvironment;
-              r-testthat.packages = [ config.nullkomma.r.package ];
-              r-testthat.command = lib.mkBefore (
-                testEnvironment
-                + ''
-                  # shinytest2 otherwise silently skips browser tests when Chrome cannot start.
-                  # shellcheck disable=SC2016
-                  Rscript --vanilla -e 'browser <- chromote::ChromoteSession$new(); browser$close()'
-                ''
-              );
+            # shortcut: single-app launcher fails SC2043; remove after upgrading
+            # to the published fix for dataheld/nullkomma#316.
+            _module.args.pkgs = inputs.nixpkgs.legacyPackages.${system}.extend (
+              _: prev: {
+                writeShellApplication =
+                  args:
+                  prev.writeShellApplication (
+                    args
+                    // lib.optionalAttrs (args.name == "r-shiny-browser") {
+                      excludeShellChecks = (args.excludeShellChecks or [ ]) ++ [ "SC2043" ];
+                    }
+                  );
+              }
+            );
+            nullkomma.devShell.env = testEnvironment;
+            process-compose.dev.settings.processes = {
+              r-check.environment = testEnvironment;
+              r-test.environment = testEnvironment;
             };
           };
       }
