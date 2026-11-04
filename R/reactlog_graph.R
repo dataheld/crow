@@ -156,7 +156,7 @@ contract_edges <- function(edges, dropped) {
 
 one_line_label <- function(label, width = 60L) {
   label <- gsub("\\s+", " ", trimws(label))
-  label <- sub("^(reactiveVal(ues)?)[0-9a-f]{8}\\b", "\\1", label)
+  label <- sub("^(reactiveVal|reactiveValues)[0-9a-f]{8}\\b", "\\1", label)
   label[grepl("private$withCurrentOutput(name,", label, fixed = TRUE)] <-
     "output (unnamed in testServer)"
   ifelse(
