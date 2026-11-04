@@ -1,72 +1,39 @@
-# module2app helper ====
+# testbed core ====
 
-#' Show a module in a full app
-#'
-#' During development of shiny modules,
-#' it can be helpful to see and test a module in the context of a shiny app.
-#' This function wraps the module UI and server functions in full shiny
-#' app for those purposes.
-#' You can also pass reactive values to the server function,
-#' to observe how your module reacts to them.
-#'
-#' @details
-#' If you only want to test the server logic of a module,
-#' you don't need this function.
-#' You can just pass the module server function to [shiny::testServer()].
-#' Hadley Wickhams Mastering Shiny as a section on
-#' [testing modules](https://mastering-shiny.org/scaling-testing.html#modules).
-#'
-#' See [mixed_react_tree()] for details on the shown input and return values.
-#' See [module2app_bare()] for the values exported for tests,
-#' and for a testbed without these displays.
-#'
-#' If you are testing screenshots,
-#' you are recommended to use [get_screenshot_args_attr()]
-#' to screenshot only your actual module UI,
-#' without the surrounding *crow* boilerplate.
-#'
-#' @param module_ui,module_server
-#' Module functions.
-#' @param ui_args,server_args
-#' Additional arguments passed to `module_server`and `module_ui`.
-#' `server_args` can be [shiny::reactive()]s,
-#' if corresponding argument in `module_server` accepts it.
-#' @inheritParams shiny::shinyApp
-#' @inheritDotParams shiny::shinyApp
-#' @family modules
-#' @export
-module2app <- function(
-  module_ui = NULL,
-  module_server = NULL,
-  ui_args = list(),
-  server_args = list(),
-  ui_wrapper = shiny::basicPage,
-  options = list(test.mode = TRUE),
-  ...
-) {
-  new_module_app(
-    ui = module2app_ui(module_ui, ui_args, ui_wrapper = ui_wrapper),
-    server = module2app_server(module_server, server_args),
-    options = options,
+new_testbed <- function(testbed_ui, testbed_server) {
+  force(testbed_ui)
+  force(testbed_server)
+  function(
+    module_ui = NULL,
+    module_server = NULL,
+    ui_args = list(),
+    server_args = list(),
+    ui_wrapper = shiny::basicPage,
+    options = list(test.mode = TRUE),
     ...
-  )
-}
-
-new_module_app <- function(ui, server, options, ...) {
-  res <- shiny::shinyApp(ui = ui, server = server, options = options, ...)
-  attributes(res) <- c(
-    attributes(res),
-    list(
-      crow_screenshot_args = list(
-        # need to select down to child
-        # because only that actually has a height
-        # the parent div may not, and will then fail the screenshot
-        selector = paste0("#", inner_module_id, " > *")
+  ) {
+    res <- shiny::shinyApp(
+      ui = testbed_ui(module_ui, ui_args, ui_wrapper = ui_wrapper),
+      server = testbed_server(module_server, server_args),
+      options = options,
+      ...
+    )
+    attributes(res) <- c(
+      attributes(res),
+      list(
+        crow_screenshot_args = list(
+          # need to select down to child
+          # because only that actually has a height
+          # the parent div may not, and will then fail the screenshot
+          selector = paste0("#", inner_module_id, " > *")
+        )
       )
     )
-  )
-  res
+    res
+  }
 }
+
+# module2app helper ====
 
 #' @describeIn module2app UI
 #' @param ui_wrapper
@@ -121,54 +88,44 @@ module2app_server <- function(module_server = NULL, server_args = list()) {
   }
 }
 
-# module2app_bare helper ====
-
-#' Show only a module in a bare app
+#' Show a module in a full app
 #'
-#' Mounts a module like [module2app()], but without its headings and displays.
-#' The app shows only the module UI,
-#' so screenshots of the whole page show only the module.
-#' Use it for automated checks, such as by coding agents or in tests;
-#' use [module2app()] to look at a module yourself.
+#' During development of shiny modules,
+#' it can be helpful to see and test a module in the context of a shiny app.
+#' This function wraps the module UI and server functions in full shiny
+#' app for those purposes.
+#' You can also pass reactive values to the server function,
+#' to observe how your module reacts to them.
 #'
 #' @details
-#' Both testbeds mount the module with the ID `test_object`
-#' and export these values for [`shinytest2::AppDriver`]'s `$get_value()`:
-#' - `res`: the return value of the module server,
-#'   called if it is a reactive.
-#' - `server_args`, `returns`:
-#'   the server arguments and the return values,
-#'   each a list of the `unevaluated` and `evaluated` tree,
-#'   as text identical to the display of [module2app()]
-#'   (see [mixed_react_tree()]).
+#' If you only want to test the server logic of a module,
+#' you don't need this function.
+#' You can just pass the module server function to [shiny::testServer()].
+#' Hadley Wickhams Mastering Shiny as a section on
+#' [testing modules](https://mastering-shiny.org/scaling-testing.html#modules).
 #'
-#' Unlike [module2app()],
-#' the bare testbed adds no outputs which depend on the module's reactives.
-#' It evaluates the trees only when they are requested.
-#' Its reactive graph is thus the same as that of an app
-#' which only uses the module.
+#' See [mixed_react_tree()] for details on the shown input and return values.
+#' See [module2app_bare()] for the values exported for tests,
+#' and for a testbed without these displays.
 #'
-#' @inheritParams module2app
-#' @inheritParams module2app_ui
+#' If you are testing screenshots,
+#' you are recommended to use [get_screenshot_args_attr()]
+#' to screenshot only your actual module UI,
+#' without the surrounding *crow* boilerplate.
+#'
+#' @param module_ui,module_server
+#' Module functions.
+#' @param ui_args,server_args
+#' Additional arguments passed to `module_server`and `module_ui`.
+#' `server_args` can be [shiny::reactive()]s,
+#' if corresponding argument in `module_server` accepts it.
+#' @inheritParams shiny::shinyApp
 #' @inheritDotParams shiny::shinyApp
 #' @family modules
 #' @export
-module2app_bare <- function(
-  module_ui = NULL,
-  module_server = NULL,
-  ui_args = list(),
-  server_args = list(),
-  ui_wrapper = shiny::basicPage,
-  options = list(test.mode = TRUE),
-  ...
-) {
-  new_module_app(
-    ui = module2app_bare_ui(module_ui, ui_args, ui_wrapper = ui_wrapper),
-    server = module2app_bare_server(module_server, server_args),
-    options = options,
-    ...
-  )
-}
+module2app <- new_testbed(module2app_ui, module2app_server)
+
+# module2app_bare helper ====
 
 #' @describeIn module2app_bare UI
 #' @export
@@ -204,6 +161,41 @@ module2app_bare_server <- function(
     res
   }
 }
+
+#' Show only a module in a bare app
+#'
+#' Mounts a module like [module2app()], but without its headings and displays.
+#' The app shows only the module UI,
+#' so screenshots of the whole page show only the module.
+#' Use it for automated checks, such as by coding agents or in tests;
+#' use [module2app()] to look at a module yourself.
+#'
+#' @details
+#' Both testbeds mount the module with the ID `test_object`
+#' and export these values for [`shinytest2::AppDriver`]'s `$get_value()`:
+#' - `res`: the return value of the module server,
+#'   called if it is a reactive.
+#' - `server_args`, `returns`:
+#'   the server arguments and the return values,
+#'   each a list of the `unevaluated` and `evaluated` tree,
+#'   as text identical to the display of [module2app()]
+#'   (see [mixed_react_tree()]).
+#'
+#' Unlike [module2app()],
+#' the bare testbed adds no outputs which depend on the module's reactives.
+#' It evaluates the trees only when they are requested.
+#' Its reactive graph is thus the same as that of an app
+#' which only uses the module.
+#'
+#' @inheritParams module2app
+#' @inheritParams module2app_ui
+#' @inheritDotParams shiny::shinyApp
+#' @family modules
+#' @export
+module2app_bare <- new_testbed(
+  module2app_bare_ui,
+  module2app_bare_server
+)
 
 #' Need to protect against non-reactive values
 #' @noRd
