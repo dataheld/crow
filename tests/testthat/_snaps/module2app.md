@@ -166,3 +166,20 @@
       $deeper_copy_of_increment_by$increment_by
       [1] 1
 
+# crow_server_args / rejects unknown and non-reactive arguments
+
+    Code
+      session$setInputs(crow_server_args = list(increment_by = 5, set_to = 3, foo = 1))
+    Message
+      Error:
+      ! Cannot change server arguments `set_to`, `foo`
+      i Only reactive arguments passed in `server_args` can change: `increment_by`
+
+# crow_server_args / rejects values other than JSON objects
+
+    Code
+      session$setInputs(crow_server_args = 5)
+    Message
+      Error:
+      ! `crow_server_args` must be a JSON object keyed by server argument name.
+

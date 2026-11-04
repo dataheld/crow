@@ -255,3 +255,98 @@ describe("tree_text", {
     expect_equal(tree_text(htmltools::p())$evaluated, "character(0)")
   })
 })
+
+describe("crow_server_args", {
+  it("overrides reactive server arguments", {
+    shiny::testServer(
+      module2app_bare_server(
+        counter_button_server,
+        server_args = list(increment_by = shiny::reactiveVal(1L))
+      ),
+      expr = {
+        session$setInputs(crow_server_args = list(increment_by = 5))
+        session$setInputs(`test_object-button` = 1)
+        expect_equal(res(), 5)
+        session$setInputs(crow_server_args = list(increment_by = NULL))
+        session$setInputs(`test_object-button` = 2)
+        expect_equal(res(), 6)
+      }
+    )
+  })
+  it("rejects unknown and non-reactive arguments", {
+    shiny::testServer(
+      module2app_bare_server(
+        counter_button_server,
+        server_args = list(set_to = 0L, increment_by = shiny::reactiveVal(1L))
+      ),
+      expr = {
+        expect_snapshot(
+          session$setInputs(
+            crow_server_args = list(increment_by = 5, set_to = 3, foo = 1)
+          )
+        )
+        session$setInputs(`test_object-button` = 1)
+        expect_equal(res(), 1L)
+      }
+    )
+  })
+  it("rejects values other than JSON objects", {
+    shiny::testServer(
+      module2app_bare_server(counter_button_server),
+      expect_snapshot(session$setInputs(crow_server_args = 5))
+    )
+  })
+  it("overrides server arguments in a running app", {
+    driver <- local_app_driver(shinytest2_app_fn(
+      source_pef("module2app", "simple", "args")
+    ))
+    driver$set_inputs(
+      crow_server_args = list(increment_by = 5),
+      allow_no_input_binding_ = TRUE
+    )
+    driver$click(selector = "#test_object-button")
+    expect_equal(driver$get_value(export = "res"), 105)
+    expect_equal(
+      driver$get_value(output = "inputs-eval"),
+      "$set_to\n[1] 100\n\n$increment_by\n[1] 5"
+    )
+    expect_equal(
+      driver$get_value(export = "server_args"),
+      list(
+        unevaluated = driver$get_value(output = "inputs-unev"),
+        evaluated = driver$get_value(output = "inputs-eval")
+      )
+    )
+  })
+  it("shows the original reactives in the unevaluated tree", {
+    driver <- local_app_driver(shinytest2_app_fn(
+      source_pef("module2app", "simple", "args")
+    ))
+    driver$set_inputs(
+      crow_server_args = list(increment_by = 5),
+      allow_no_input_binding_ = TRUE
+    )
+    expect_equal(
+      driver$get_value(output = "inputs-unev"),
+      tree_text(
+        list(set_to = 100L, increment_by = shiny::reactiveVal(2L))
+      )$unevaluated
+    )
+  })
+  it("logs rejected arguments and keeps the app running", {
+    driver <- local_app_driver(shinytest2_app_fn(
+      source_pef("module2app", "simple", "args")
+    ))
+    driver$set_inputs(
+      crow_server_args = list(set_to = 5),
+      allow_no_input_binding_ = TRUE
+    )
+    expect_match(
+      paste(driver$get_logs()$message, collapse = "\n"),
+      "Cannot change server argument `set_to`",
+      fixed = TRUE
+    )
+    driver$click(selector = "#test_object-button")
+    expect_equal(driver$get_value(export = "res"), 102L)
+  })
+})

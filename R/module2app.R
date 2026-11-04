@@ -33,6 +33,98 @@ new_testbed <- function(testbed_ui, testbed_server) {
   }
 }
 
+mount_server <- function(
+  module_server,
+  server_args,
+  display = function(server_args, effective_args, returns) NULL
+) {
+  checkmate::assert_function(module_server, args = c("id"), null.ok = TRUE)
+  checkmate::assert_list(server_args)
+  # created outside the server function, so all sessions share them
+  overrides <- purrr::map(reactive_args(server_args), \(x) shiny::reactiveVal())
+  effective_args <- server_args
+  effective_args[names(overrides)] <- purrr::map2(
+    server_args[names(overrides)],
+    overrides,
+    overridable
+  )
+  if (is.null(module_server)) {
+    module_server <- no_fun_provided_server
+  } else {
+    # partialising above boilerplate with server args makes no sense
+    module_server <- purrr::partial(module_server, !!!effective_args)
+  }
+  function(input, output, session) {
+    shiny::observeEvent(
+      input$crow_server_args,
+      set_overrides(overrides, input$crow_server_args)
+    )
+    res <- module_server(id = "test_object")
+    shiny::exportTestValues(
+      res = fix_test_returns(res),
+      server_args = tree_text(server_args, effective_args),
+      returns = tree_text(res)
+    )
+    display(server_args, effective_args, res)
+    res
+  }
+}
+
+reactive_args <- function(server_args) {
+  purrr::keep(server_args[rlang::names2(server_args) != ""], shiny::is.reactive)
+}
+
+overridable <- function(original, override) {
+  shiny::reactive(if (is.null(override())) original() else override())
+}
+
+#' Errors would end the session,
+#' so they only go to stderr and a notification.
+#' @noRd
+set_overrides <- function(overrides, values) {
+  tryCatch(
+    {
+      check_overridable(values, names(overrides))
+      purrr::iwalk(values, \(value, name) overrides[[name]](value))
+    },
+    error = function(cnd) {
+      message(rlang::cnd_message(cnd, prefix = TRUE))
+      shiny::showNotification(conditionMessage(cnd), type = "error")
+    }
+  )
+}
+
+check_overridable <- function(values, overridable) {
+  if (!is.list(values) || !rlang::is_named(values)) {
+    rlang::abort(
+      "`crow_server_args` must be a JSON object keyed by server argument name.",
+      call = NULL
+    )
+  }
+  rejected <- setdiff(names(values), overridable)
+  if (length(rejected) > 0) {
+    rlang::abort(
+      c(
+        paste(
+          ngettext(
+            length(rejected),
+            "Cannot change server argument",
+            "Cannot change server arguments"
+          ),
+          backticks(rejected)
+        ),
+        i = paste(
+          "Only reactive arguments passed in `server_args` can change:",
+          if (length(overridable) > 0) backticks(overridable) else "none."
+        )
+      ),
+      call = NULL
+    )
+  }
+}
+
+backticks <- function(x) paste0("`", x, "`", collapse = ", ")
+
 # module2app helper ====
 
 #' @describeIn module2app
@@ -83,13 +175,12 @@ inner_module_id <- "crow-module2app-module-ui"
 #' of server arguments and return values.
 #' @export
 module2app_server <- function(module_server = NULL, server_args = list()) {
-  bare_server <- module2app_bare_server(module_server, server_args)
-  function(input, output, session) {
-    mixed_react_tree_server(id = "inputs", tree = server_args)
-    res <- bare_server(input, output, session)
-    mixed_react_tree_server(id = "returns", tree = res)
-    res
-  }
+  mount_server(module_server, server_args, display = display_trees)
+}
+
+display_trees <- function(server_args, effective_args, returns) {
+  tree_server(id = "inputs", tree = server_args, evaluated = effective_args)
+  mixed_react_tree_server(id = "returns", tree = returns)
 }
 
 #' Show a module in a testbed app, with its inputs and outputs
@@ -116,7 +207,9 @@ module2app_server <- function(module_server = NULL, server_args = list()) {
 #' [testing modules](https://mastering-shiny.org/scaling-testing.html#modules).
 #'
 #' Both testbeds export the server arguments and return values
-#' for tests (see [module2app_bare()]).
+#' for tests,
+#' and accept changes to reactive `server_args` while the app runs
+#' (see [module2app_bare()]).
 #'
 #' If you are testing screenshots,
 #' you are recommended to use [get_screenshot_args_attr()]
@@ -136,6 +229,8 @@ module2app_server <- function(module_server = NULL, server_args = list()) {
 #' Additional arguments passed to `module_server`and `module_ui`.
 #' `server_args` can be [shiny::reactive()]s,
 #' if corresponding argument in `module_server` accepts it.
+#' Named reactive `server_args` can change while the app runs
+#' (see [module2app_bare()]).
 #' @inheritParams shiny::shinyApp
 #' @inheritDotParams shiny::shinyApp
 #' @family modules
@@ -160,23 +255,7 @@ module2app_bare_server <- function(
   module_server = NULL,
   server_args = list()
 ) {
-  checkmate::assert_function(module_server, args = c("id"), null.ok = TRUE)
-  checkmate::assert_list(server_args)
-  if (is.null(module_server)) {
-    module_server <- no_fun_provided_server
-  } else {
-    # partialising above boilerplate with server args makes no sense
-    module_server <- purrr::partial(module_server, !!!server_args)
-  }
-  function(input, output, session) {
-    res <- module_server(id = "test_object")
-    shiny::exportTestValues(
-      res = fix_test_returns(res),
-      server_args = tree_text(server_args),
-      returns = tree_text(res)
-    )
-    res
-  }
+  mount_server(module_server, server_args)
 }
 
 #' Show a module in a testbed app, without its inputs and outputs
@@ -212,6 +291,42 @@ module2app_bare_server <- function(
 #' it evaluates the trees only when a test requests them.
 #' Its reactive graph is thus the same as that of an app
 #' which only uses the module.
+#'
+#' @section Changing server arguments while the app runs:
+#' Both testbeds read the hidden input `crow_server_args`,
+#' a JSON object keyed by server argument name.
+#' Its values replace the values of these arguments,
+#' for all sessions of the app.
+#' A `null` restores the value passed at start.
+#' The module receives each named reactive in `server_args`
+#' wrapped in a [shiny::reactive()],
+#' so it cannot set the original [shiny::reactiveVal()].
+#' Other server arguments are fixed at start.
+#' The displayed and exported `server_args` show the reactives as passed,
+#' but evaluate to the current values.
+#'
+#' From R, through [`shinytest2::AppDriver`] (see [local_app_driver()]):
+#' ```r
+#' driver$set_inputs(
+#'   crow_server_args = list(increment_by = 5),
+#'   allow_no_input_binding_ = TRUE
+#' )
+#' ```
+#' From the browser console:
+#' ```js
+#' Shiny.setInputValue("crow_server_args", {increment_by: 5})
+#' ```
+#' Values can be any JSON value,
+#' which shiny converts with `jsonlite::fromJSON(simplifyVector = FALSE)`:
+#' e.g. `5` becomes `5L`, `2.5` a double, `true` `TRUE`,
+#' and arrays and objects become lists.
+#' The input accepts only JSON, never R code,
+#' because the app does not check the origin of websocket connections:
+#' any web page open in the same browser can send this input.
+#'
+#' Changing an unknown or a non-reactive argument changes nothing.
+#' The error goes to the app's standard error and a notification,
+#' because an error would end the session.
 #'
 #' @inheritParams module2app
 #' @inheritParams module2app_ui
@@ -332,11 +447,17 @@ mixed_react_tree_ui <- function(id) {
 #' as passed around between modules.
 #' @export
 mixed_react_tree_server <- function(id, tree = shiny::reactive(NULL)) {
+  tree_server(id, tree)
+}
+
+#' Shows `evaluated`, such as overridden server arguments, in place of `tree`
+#' @noRd
+tree_server <- function(id, tree, evaluated = tree) {
   shiny::moduleServer(
     id = id,
     function(input, output, session) {
       output$unev <- shiny::renderPrint(tree_unevaluated(tree))
-      output$eval <- shiny::renderPrint(tree_evaluated(tree))
+      output$eval <- shiny::renderPrint(tree_evaluated(evaluated))
     }
   )
 }
@@ -353,10 +474,10 @@ tree_evaluated <- function(tree) {
 
 #' Print both trees to text, as [mixed_react_tree_server()] displays them
 #' @noRd
-tree_text <- function(tree) {
+tree_text <- function(tree, evaluated = tree) {
   shiny::isolate(list(
     unevaluated = print_text(tree_unevaluated(tree)),
-    evaluated = print_text(tree_evaluated(tree))
+    evaluated = print_text(tree_evaluated(evaluated))
   ))
 }
 
