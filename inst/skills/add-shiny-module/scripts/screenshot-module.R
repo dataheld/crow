@@ -17,7 +17,6 @@ crow::get_screenshot_from_app(
     library(.(package))
     .(app)()
   })),
-  screenshot_args = crow::get_screenshot_args_attr(eval(app)()),
   file = file,
   strict = TRUE
 )
