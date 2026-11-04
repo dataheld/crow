@@ -36,7 +36,7 @@ new_testbed <- function(testbed_ui, testbed_server) {
 mount_server <- function(
   module_server,
   server_args,
-  display = function(server_args, returns) NULL
+  display = function(server_args, effective_args, returns) NULL
 ) {
   checkmate::assert_function(module_server, args = c("id"), null.ok = TRUE)
   checkmate::assert_list(server_args)
@@ -45,7 +45,8 @@ mount_server <- function(
     reactive_args(server_args),
     \(x, name) shiny::reactiveVal(label = paste0("crow_override_", name))
   )
-  server_args[names(overrides)] <- purrr::pmap(
+  effective_args <- server_args
+  effective_args[names(overrides)] <- purrr::pmap(
     list(server_args[names(overrides)], overrides, names(overrides)),
     overridable
   )
@@ -53,7 +54,7 @@ mount_server <- function(
     module_server <- no_fun_provided_server
   } else {
     # partialising above boilerplate with server args makes no sense
-    module_server <- purrr::partial(module_server, !!!server_args)
+    module_server <- purrr::partial(module_server, !!!effective_args)
   }
   function(input, output, session) {
     shiny::observeEvent(
@@ -64,11 +65,11 @@ mount_server <- function(
     res <- module_server(id = "test_object")
     shiny::exportTestValues(
       res = fix_test_returns(res),
-      server_args = tree_text(server_args),
+      server_args = tree_text(server_args, effective_args),
       returns = tree_text(res),
       reactlog = session_reactlog(shiny::reactlog(), session$token)
     )
-    display(server_args, res)
+    display(server_args, effective_args, res)
     res
   }
 }
@@ -180,8 +181,8 @@ module2app_server <- function(module_server = NULL, server_args = list()) {
   mount_server(module_server, server_args, display = display_trees)
 }
 
-display_trees <- function(server_args, returns) {
-  mixed_react_tree_server(id = "inputs", tree = server_args)
+display_trees <- function(server_args, effective_args, returns) {
+  tree_server(id = "inputs", tree = server_args, evaluated = effective_args)
   mixed_react_tree_server(id = "returns", tree = returns)
 }
 
@@ -285,7 +286,8 @@ module2app_bare_server <- function(
 #' wrapped in a [shiny::reactive()],
 #' so it cannot set the original [shiny::reactiveVal()].
 #' Other server arguments are fixed at start.
-#' The displayed and exported `server_args` show the current values.
+#' The displayed and exported `server_args` show the reactives as passed,
+#' but evaluate to the current values.
 #'
 #' From R, through [`shinytest2::AppDriver`] (see [local_app_driver()]):
 #' ```r
@@ -430,11 +432,17 @@ mixed_react_tree_ui <- function(id) {
 #' as passed around between modules.
 #' @export
 mixed_react_tree_server <- function(id, tree = shiny::reactive(NULL)) {
+  tree_server(id, tree)
+}
+
+#' Shows `evaluated`, such as overridden server arguments, in place of `tree`
+#' @noRd
+tree_server <- function(id, tree, evaluated = tree) {
   shiny::moduleServer(
     id = id,
     function(input, output, session) {
       output$unev <- shiny::renderPrint(tree_unevaluated(tree))
-      output$eval <- shiny::renderPrint(tree_evaluated(tree))
+      output$eval <- shiny::renderPrint(tree_evaluated(evaluated))
     }
   )
 }
@@ -451,10 +459,10 @@ tree_evaluated <- function(tree) {
 
 #' Print both trees to text, as [mixed_react_tree_server()] displays them
 #' @noRd
-tree_text <- function(tree) {
+tree_text <- function(tree, evaluated = tree) {
   shiny::isolate(list(
     unevaluated = print_text(tree_unevaluated(tree)),
-    evaluated = print_text(tree_evaluated(tree))
+    evaluated = print_text(tree_evaluated(evaluated))
   ))
 }
 

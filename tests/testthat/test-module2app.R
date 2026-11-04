@@ -292,8 +292,26 @@ describe("crow_server_args", {
       "$set_to\n[1] 100\n\n$increment_by\n[1] 5"
     )
     expect_equal(
-      driver$get_value(export = "server_args")$evaluated,
-      driver$get_value(output = "inputs-eval")
+      driver$get_value(export = "server_args"),
+      list(
+        unevaluated = driver$get_value(output = "inputs-unev"),
+        evaluated = driver$get_value(output = "inputs-eval")
+      )
+    )
+  })
+  it("shows the original reactives in the unevaluated tree", {
+    driver <- local_app_driver(shinytest2_app_fn(
+      source_pef("module2app", "simple", "args")
+    ))
+    driver$set_inputs(
+      crow_server_args = list(increment_by = 5),
+      allow_no_input_binding_ = TRUE
+    )
+    expect_equal(
+      driver$get_value(output = "inputs-unev"),
+      tree_text(
+        list(set_to = 100L, increment_by = shiny::reactiveVal(2L))
+      )$unevaluated
     )
   })
   it("logs rejected arguments and keeps the app running", {

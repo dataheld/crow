@@ -48,20 +48,16 @@ and its nested parent `x_counter_button`.
 ### Server
 
 - Wrap the logic in `shiny::moduleServer()`.
-
 - For each argument, decide who provides its value
   ([Mastering Shiny, 19.3.3](https://mastering-shiny.org/scaling-modules.html#server-inputs)):
-
   - The R programmer who calls the module:
     a constant, fixed for the lifetime of the app,
     e.g. `set_to = 0L`.
   - The app user:
     a reactive, which changes as the user interacts with the app,
     e.g. `increment_by = shiny::reactiveVal(1L)`.
-
-  Give every argument a default,
+- Give every argument a default,
   so that `foo_app()` runs without arguments.
-
 - Assert the kind of each argument at the top of `foo_server()`,
   before `shiny::moduleServer()`.
   If the package imports crow,
@@ -71,15 +67,12 @@ and its nested parent `x_counter_button`.
   Without the assertion,
   an argument of the wrong kind fails later with a cryptic error,
   e.g. `could not find function "data"`.
-
 - Return a reactive, or a (nested) list of reactives,
   never a writable `shiny::reactiveVal()`:
   wrap it, e.g. `shiny::reactive(count())`.
   Return `NULL` only if the module has no output for its caller.
-
 - Compose modules by calling the child's `bar_server(id = "bar", ...)`
   in the server and `bar_ui(ns("bar"))` in the UI.
-
 - `input$x` is not a reactive.
   Wrap it to pass it to a module:
   `bar_server("bar", x = shiny::reactive(input$x))`.
