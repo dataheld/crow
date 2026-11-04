@@ -272,6 +272,11 @@ test_server_sections <- function(server, server_args, expr, reactive_graph) {
           value <- !!expr
           sections[["Value of `expr`"]] <<- print_text(value)
           sections <<- c(sections, testbed_sections(session$userData))
+          if (reactive_graph) {
+            sections[["Reactive graph"]] <<- format(
+              reactlog_graph(session = session$token)
+            )
+          }
         }
       )),
       message = \(cnd) {
@@ -285,9 +290,6 @@ test_server_sections <- function(server, server_args, expr, reactive_graph) {
     ),
     error = \(cnd) sections[["Error"]] <<- conditionMessage(cnd)
   )
-  if (reactive_graph) {
-    sections[["Reactive graph"]] <- reactive_graph_text(shiny::reactlog())
-  }
   c(sections, list(`Messages and warnings` = conditions))
 }
 
@@ -306,11 +308,6 @@ tree_sections <- function(server_args, returns) {
     `Return value (unevaluated)` = returns$unevaluated,
     `Return value (evaluated)` = returns$evaluated
   )
-}
-
-# placeholder until reactlog_graph() (#70) lands
-reactive_graph_text <- function(log) {
-  format(reactlog_graph(log))
 }
 
 # tier II: running apps ====
@@ -483,8 +480,8 @@ app_sections <- function(outputs = FALSE, reactive_graph = FALSE, trees = TRUE) 
     )
   }
   if (reactive_graph) {
-    sections[["Reactive graph"]] <- reactive_graph_text(
-      driver$get_value(export = "reactlog")
+    sections[["Reactive graph"]] <- format(
+      reactlog_graph(driver$get_value(export = "reactlog"))
     )
   }
   c(sections, list(Log = new_log_lines()))

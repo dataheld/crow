@@ -84,6 +84,20 @@ test_that("module_test_server() changes reactive server arguments", {
   expect_match(res, "$increment_by\n[1] 5", fixed = TRUE)
 })
 
+test_that("module_test_server() reports the reactive graph", {
+  res <- tool("module_test_server")(
+    path = pkg_root(),
+    server = "counter_button_server",
+    expr = "session$setInputs(`test_object-button` = 1)",
+    reactive_graph = TRUE
+  )
+  expect_match(
+    res,
+    "## Reactive graph\n[^#]*input\\$test_object-button -> observeEvent"
+  )
+  expect_no_match(res, "crow_", fixed = TRUE)
+})
+
 test_that("module_test_server() reports errors first", {
   res <- tool("module_test_server")(
     path = pkg_root(),
@@ -127,8 +141,9 @@ test_that("module apps start, change, report, screenshot and stop", {
   )
   expect_no_match(wrong, "Listening on", fixed = TRUE)
 
-  get <- tool("module_app_get")(id)
+  get <- tool("module_app_get")(id, reactive_graph = TRUE)
   expect_match(get, "output$`test_object-out`", fixed = TRUE)
+  expect_match(get, "## Reactive graph\n[^#]*input\\$test_object-button ->")
 
   shot <- tool("module_app_screenshot")(id)
   png <- regmatches(shot, regexpr("[^\n ]+\\.png", shot))
