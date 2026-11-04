@@ -35,7 +35,7 @@
 #'   shinytest2_app_fn(module2app(counter_button_ui))
 #' )
 #' }
-#' @family modules
+#' @family shinytest2
 #' @export
 shinytest2_app_fn <- function(
   code,

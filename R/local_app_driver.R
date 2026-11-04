@@ -6,11 +6,13 @@
 #' such as the module UI of [module2app()].
 #' The driver stops when `.local_envir` exits.
 #'
+#' To make shinytest2 run the working tree of your package,
+#' instead of an outdated installed version,
+#' pass a function as `app` (see [shinytest2_app_fn()]).
+#'
 #' @param app
 #' A function without arguments that returns a shiny app,
 #' such as `counter_button_app` or one from [shinytest2_app_fn()].
-#' Pass functions, not app objects,
-#' so that shinytest2 runs the working tree of your package.
 #' Other values passed to `app_dir` of `shinytest2::AppDriver$new()`
 #' also work.
 #' @param screenshot_args
@@ -28,7 +30,7 @@
 #'   expect_equal(driver$get_value(export = "res"), 1L)
 #' })
 #' }
-#' @family modules
+#' @family shinytest2
 #' @export
 local_app_driver <- function(
   app,

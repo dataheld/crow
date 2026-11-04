@@ -9,4 +9,5 @@
 #' bins
 #' FALSE
 #' mac
+#' 2
 bins_app <- function() examples_app()
