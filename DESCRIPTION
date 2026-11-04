@@ -33,7 +33,8 @@ Imports:
     purrr,
     rlang,
     shiny,
-    testthat
+    testthat,
+    utils
 Suggests:
     bsicons,
     bslib,

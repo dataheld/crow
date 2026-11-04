@@ -19,26 +19,17 @@ describe("roxy_tag_crowExamplesShiny", {
     expect_snapshot(topic$get_section("examples"))
   })
 })
-# unnecessary wrapper, but otherwise skip has global scope,
-# see #32
-test_that("get_screenshot_works", {
+test_that("get_screenshot_from_app can record a screenshot", {
   # these should use boring counter_button_app, not examples_app,
   # because they're in this package and don't change
   # upstream change from shiny examples could break screenshots
-  describe("get_screenshot_from_app", {
-    name <- "counter.png"
-    announce_snapshot_file(name = name)
-    skip_if_load_all2()
-    path <- withr::local_tempfile(fileext = ".png")
-    it("can record a screenshot", {
-      get_screenshot_from_app(counter_button_app(), file = path)
-      expect_snapshot_file(
-        path = path,
-        name = name,
-        variant = variant
-      )
-    })
-  })
+  path <- withr::local_tempfile(fileext = ".png")
+  get_screenshot_from_app(
+    counter_button_app,
+    screenshot_args = get_screenshot_args_attr(counter_button_app()),
+    file = path
+  )
+  expect_snapshot_file(path, name = "counter.png", variant = variant)
 })
 
 test_that("screenshots fail according to `strict` setting", {

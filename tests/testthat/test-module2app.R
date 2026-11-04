@@ -1,19 +1,17 @@
 test_that("works without any inputs", {
   shiny::testServer(module2app_server(), expect_equal(res, NULL))
   expect_snapshot(module2app_ui())
-  skip_if_load_all2()
-  driver <- shinytest2::AppDriver$new(
+  driver <- shinytest2::AppDriver$new(shinytest2_app_fn(
     source_pef("module2app", "simple", "no-funs")
-  )
+  ))
   withr::defer(driver$stop())
   expect_equal(driver$get_value(export = "res"), NULL)
 })
 test_that("works with only UI input", {
   expect_snapshot(module2app_ui(module_ui = counter_button_ui))
-  skip_if_load_all2()
-  driver <- shinytest2::AppDriver$new(
+  driver <- shinytest2::AppDriver$new(shinytest2_app_fn(
     source_pef("module2app", "simple", "only-ui")
-  )
+  ))
   withr::defer(driver$stop())
   driver$expect_text("#test_object-button")
 })
@@ -22,18 +20,16 @@ test_that("works with only server input", {
     module2app_server(module_server = counter_button_server),
     expect_equal(res(), 0)
   )
-  skip_if_load_all2()
-  driver <- shinytest2::AppDriver$new(
+  driver <- shinytest2::AppDriver$new(shinytest2_app_fn(
     source_pef("module2app", "simple", "only-server")
-  )
+  ))
   withr::defer(driver$stop())
   expect_equal(driver$get_value(export = "res"), 0)
 })
 test_that("works with both inputs", {
-  skip_if_load_all2()
-  driver <- shinytest2::AppDriver$new(
+  driver <- shinytest2::AppDriver$new(shinytest2_app_fn(
     source_pef("module2app", "simple", "both-funs")
-  )
+  ))
   withr::defer(driver$stop())
   expect_equal(
     driver$get_value(output = "returns-eval"),
@@ -62,10 +58,9 @@ test_that("works with arguments to ui and server", {
       expect_equal(res(), 15)
     }
   )
-  skip_if_load_all2()
-  driver <- shinytest2::AppDriver$new(
+  driver <- shinytest2::AppDriver$new(shinytest2_app_fn(
     source_pef("module2app", "simple", "args")
-  )
+  ))
   withr::defer(driver$stop())
   expect_equal(
     driver$get_value(output = "returns-eval"),
@@ -78,8 +73,9 @@ test_that("works with arguments to ui and server", {
   )
 })
 test_that("works with only server args", {
-  skip_if_load_all2()
-  driver <- shinytest2::AppDriver$new(module2app(server_args = list(c(1, 2))))
+  driver <- shinytest2::AppDriver$new(shinytest2_app_fn(
+    module2app(server_args = list(c(1, 2)))
+  ))
   withr::defer(driver$stop())
   expect_equal(
     driver$get_value(output = "inputs-eval"),
@@ -87,10 +83,9 @@ test_that("works with only server args", {
   )
 })
 test_that("works with `shiny.tag` returns (workaround)", {
-  skip_if_load_all2()
-  driver <- shinytest2::AppDriver$new(
+  driver <- shinytest2::AppDriver$new(shinytest2_app_fn(
     module2app(server_args = list(bar = 1, zap = htmltools::p()))
-  )
+  ))
   withr::defer(driver$stop())
   expect_snapshot(
     driver$get_value(output = "inputs-eval"),
@@ -98,13 +93,12 @@ test_that("works with `shiny.tag` returns (workaround)", {
   )
 })
 test_that("works with S3-classed return", {
-  skip_if_load_all2()
   expect_no_condition({
-    driver <- shinytest2::AppDriver$new(
+    driver <- shinytest2::AppDriver$new(shinytest2_app_fn(
       module2app(
         server_args = list(zap = shiny::reactive(bsicons::bs_icon("heart")))
       )
-    )
+    ))
     withr::defer(driver$stop())
   })
 })
@@ -122,10 +116,9 @@ test_that("works with nested modules and flat returns", {
   )
 })
 test_that("works with nested modules and deep returns", {
-  skip_if_load_all2()
-  driver <- shinytest2::AppDriver$new(
+  driver <- shinytest2::AppDriver$new(shinytest2_app_fn(
     source_pef("module2app", "nested", "deep")
-  )
+  ))
   withr::defer(driver$stop())
   driver$expect_text("#returns-eval")
   # changing increment does not work in test,
