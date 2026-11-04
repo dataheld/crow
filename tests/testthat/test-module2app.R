@@ -72,6 +72,26 @@ test_that("works with arguments to ui and server", {
     capture.output(print(102))
   )
 })
+test_that("shows module inputs, UI and returns in screenshots", {
+  purrr::walk(
+    glue::glue("double-counter-00{1:4}.png"),
+    testthat::announce_snapshot_file
+  )
+  # linux screenshots are the canonical source for the docs
+  skip_on_os(c("windows", "mac", "solaris"))
+  driver <- shinytest2::AppDriver$new(
+    shinytest2_app_fn(source_pef("module2app", "simple", "args")),
+    name = "double-counter",
+    variant = "linux",
+    screenshot_args = list(selector = ".container-fluid", expand = 15)
+  )
+  withr::defer(driver$stop())
+  driver$expect_screenshot()
+  purrr::walk(1:3, function(click) {
+    driver$click("test_object-button")
+    driver$expect_screenshot()
+  })
+})
 test_that("works with only server args", {
   driver <- shinytest2::AppDriver$new(shinytest2_app_fn(
     module2app(server_args = list(c(1, 2)))
