@@ -123,6 +123,13 @@ module2app_server <- function(module_server = NULL, server_args = list()) {
 #' to screenshot only your actual module UI,
 #' without the displays of server arguments and return values.
 #'
+#' @crowInsertSnaps
+#' module2app
+#' double-counter
+#' TRUE
+#' linux
+#' 1
+#'
 #' @param module_ui,module_server
 #' Module functions.
 #' @param ui_args,server_args
