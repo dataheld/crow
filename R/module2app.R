@@ -23,6 +23,13 @@
 #' to screenshot only your actual module UI,
 #' without the surrounding *crow* boilerplate.
 #'
+#' @crowInsertSnaps
+#' module2app
+#' double-counter
+#' TRUE
+#' linux
+#' 1
+#'
 #' @param module_ui,module_server
 #' Module functions.
 #' @param ui_args,server_args
