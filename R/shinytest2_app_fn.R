@@ -13,7 +13,7 @@
 #' after loading your package from source,
 #' as described in its
 #' [package testing guide](https://rstudio.github.io/shinytest2/articles/use-package.html).
-#' Use `app_fn()` when the app needs arguments,
+#' Use `shinytest2_app_fn()` when the app needs arguments,
 #' or comes from other package code.
 #'
 #' Do not pass pre-created app objects (`my_app()`),
@@ -26,15 +26,21 @@
 #' evaluated in your package's namespace in the background process.
 #' @param package
 #' Name of your package.
-#' Defaults to the package calling `app_fn()`, such as the one under test.
+#' Defaults to the package calling `shinytest2_app_fn()`,
+#' such as the one under test.
 #' @return A function without arguments.
 #' @examples
 #' \dontrun{
-#' shinytest2::AppDriver$new(app_fn(module2app(counter_button_ui)))
+#' shinytest2::AppDriver$new(
+#'   shinytest2_app_fn(module2app(counter_button_ui))
+#' )
 #' }
 #' @family modules
 #' @export
-app_fn <- function(code, package = utils::packageName(rlang::caller_env())) {
+shinytest2_app_fn <- function(
+  code,
+  package = utils::packageName(rlang::caller_env())
+) {
   checkmate::assert_string(package)
   rlang::new_function(NULL, rlang::enexpr(code), asNamespace(package))
 }
