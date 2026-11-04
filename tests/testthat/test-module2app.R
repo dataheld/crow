@@ -145,3 +145,94 @@ test_that("absence and presence of crow attrs can be found", {
   expect_false(has_crow_attrs(examples_app()))
 })
 
+describe("module2app_bare", {
+  it("shows only the module UI", {
+    expect_snapshot(module2app_bare_ui(module_ui = counter_button_ui))
+  })
+  it("mounts the module server with arguments", {
+    shiny::testServer(
+      module2app_bare_server(
+        module_server = counter_button_server,
+        server_args = list(set_to = 10L)
+      ),
+      expr = {
+        expect_equal(res(), 10L)
+        session$setInputs(`test_object-button` = 1)
+        expect_equal(res(), 11L)
+      }
+    )
+  })
+  it("exports the trees of server arguments and return values", {
+    driver <- local_app_driver(shinytest2_app_fn(
+      module2app_bare(
+        x_counter_button_ui,
+        x_counter_button_server,
+        server_args = list(deep = TRUE)
+      )
+    ))
+    expect_equal(
+      driver$get_value(export = "server_args"),
+      list(unevaluated = "$deep\n[1] TRUE", evaluated = "$deep\n[1] TRUE")
+    )
+    returns <- driver$get_value(export = "returns")
+    expect_snapshot(cat(returns$unevaluated))
+    expect_snapshot(cat(returns$evaluated))
+  })
+  it("screenshots the same module as module2app", {
+    screenshot_info <- function(app) {
+      path <- withr::local_tempfile(fileext = ".png")
+      local_app_driver(app)$get_screenshot(file = path)
+      magick::image_info(magick::image_read(path))[c("width", "height")]
+    }
+    expect_equal(
+      screenshot_info(shinytest2_app_fn(
+        module2app_bare(counter_button_ui, counter_button_server)
+      )),
+      screenshot_info(counter_button_app)
+    )
+  })
+})
+test_that("module2app exports the trees it displays", {
+  driver <- local_app_driver(shinytest2_app_fn(
+    source_pef("module2app", "nested", "deep")
+  ))
+  returns <- driver$get_value(export = "returns")
+  expect_equal(returns$evaluated, driver$get_value(output = "returns-eval"))
+  expect_equal(returns$unevaluated, driver$get_value(output = "returns-unev"))
+  server_args <- driver$get_value(export = "server_args")
+  expect_equal(server_args$evaluated, driver$get_value(output = "inputs-eval"))
+})
+
+describe("tree_text", {
+  it("prints flat returns", {
+    tree <- shiny::reactive(2L)
+    expect_equal(
+      tree_text(tree),
+      list(
+        unevaluated = paste(capture.output(tree), collapse = "\n"),
+        evaluated = "[1] 2"
+      )
+    )
+  })
+  it("prints deeply nested returns, including reactives of reactives", {
+    shiny::testServer(
+      module2app_bare_server(
+        x_counter_button_server,
+        server_args = list(deep = TRUE)
+      ),
+      expr = {
+        session$setInputs(`test_object-set_count-button` = 1)
+        expect_snapshot(cat(tree_text(res)$evaluated))
+      }
+    )
+  })
+  it("evaluates outside of reactive contexts", {
+    expect_equal(
+      tree_text(list(shiny::reactiveVal(1L)))$evaluated,
+      "[[1]]\n[1] 1"
+    )
+  })
+  it("skips shiny tags", {
+    expect_equal(tree_text(htmltools::p())$evaluated, "character(0)")
+  })
+})
