@@ -143,6 +143,10 @@ display_trees <- function(server_args, returns) {
 #'   each a list of the `unevaluated` and `evaluated` tree,
 #'   as text identical to the display of [module2app()]
 #'   (see [mixed_react_tree()]).
+#' - `reactlog`: the events of [shiny::reactlog()] for this session,
+#'   for [reactlog_graph()].
+#'   Empty, unless the app runs with `options(shiny.reactlog = TRUE)`,
+#'   such as from `local_app_driver(options = list(shiny.reactlog = TRUE))`.
 #'
 #' Unlike [module2app()],
 #' the bare testbed adds no outputs which depend on the module's reactives.
@@ -231,10 +235,12 @@ testbed_server <- function(
   checkmate::assert_function(module_server, args = c("id"), null.ok = TRUE)
   checkmate::assert_list(server_args)
   # created outside the server function, so all sessions share them
-  overrides <- purrr::map(reactive_args(server_args), \(x) shiny::reactiveVal())
-  server_args[names(overrides)] <- purrr::map2(
-    server_args[names(overrides)],
-    overrides,
+  overrides <- purrr::imap(
+    reactive_args(server_args),
+    \(x, name) shiny::reactiveVal(label = paste0("crow_override_", name))
+  )
+  server_args[names(overrides)] <- purrr::pmap(
+    list(server_args[names(overrides)], overrides, names(overrides)),
     overridable
   )
   if (is.null(module_server)) {
@@ -246,7 +252,8 @@ testbed_server <- function(
   function(input, output, session) {
     shiny::observeEvent(
       input$crow_server_args,
-      set_overrides(overrides, input$crow_server_args)
+      set_overrides(overrides, input$crow_server_args),
+      label = "crow_server_args"
     )
     res <- module_server(id = "test_object")
     # exportTestValues() does nothing in shiny::testServer()
@@ -254,7 +261,8 @@ testbed_server <- function(
     shiny::exportTestValues(
       res = fix_test_returns(res),
       server_args = tree_text(server_args),
-      returns = tree_text(res)
+      returns = tree_text(res),
+      reactlog = session_reactlog(shiny::reactlog(), session$token)
     )
     display(server_args, res)
     res
@@ -265,8 +273,11 @@ reactive_args <- function(server_args) {
   purrr::keep(server_args[rlang::names2(server_args) != ""], shiny::is.reactive)
 }
 
-overridable <- function(original, override) {
-  shiny::reactive(if (is.null(override())) original() else override())
+overridable <- function(original, override, name) {
+  shiny::reactive(
+    if (is.null(override())) original() else override(),
+    label = paste0("crow_server_arg_", name)
+  )
 }
 
 #' Errors would end the session,
@@ -369,6 +380,11 @@ no_fun_provided_glue <- function(x) glue::glue("No {x} function provided.")
 #' For example,
 #' these reactives might be invalidated at a different time in your use
 #' of your modules outside of this testbed.
+#' [reactlog_graph()] drops the testbed's own nodes, including this display,
+#' but keeps the dependencies the display causes:
+#' returned reactives which the display reads depend on their sources,
+#' even if nothing else reads them.
+#' [module2app_bare()] does not have this display.
 #'
 #' @section Bugs:
 #' The display currently includes workarounds for these (likely upstream) bugs:
