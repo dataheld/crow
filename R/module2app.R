@@ -249,6 +249,8 @@ testbed_server <- function(
       set_overrides(overrides, input$crow_server_args)
     )
     res <- module_server(id = "test_object")
+    # exportTestValues() does nothing in shiny::testServer()
+    session$userData$crow_testbed <- list(server_args = server_args, res = res)
     shiny::exportTestValues(
       res = fix_test_returns(res),
       server_args = tree_text(server_args),
