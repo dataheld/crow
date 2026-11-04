@@ -7,13 +7,11 @@ test_that("MODULE_server returns its value", {
 
 test_that("MODULE_app works in a browser", {
   skip_on_cran()
-  driver <- shinytest2::AppDriver$new(
+  driver <- crow::local_app_driver(
     MODULE_app,
     name = "MODULE",
-    variant = shinytest2::platform_variant(r_version = FALSE),
-    screenshot_args = crow::get_screenshot_args_attr(MODULE_app())
+    variant = shinytest2::platform_variant(r_version = FALSE)
   )
-  withr::defer(driver$stop())
   driver$expect_screenshot()
   expect_null(driver$get_value(export = "res"))
 })

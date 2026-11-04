@@ -1,7 +1,7 @@
 ---
 name: add-shiny-module
 description: Add a shiny module to an R package the crow way, with foo_ui, foo_server and a foo_app testbed from crow::module2app(), testServer() tests covering all server logic, and shinytest2 screenshots of the interaction inserted into the docs. Use when creating or restructuring a shiny module in an R package.
-compatibility: Requires R, an R package with testthat 3e, and the R packages crow, shiny, shinytest2, pkgload and withr. Screenshots need Chrome.
+compatibility: Requires R, an R package with testthat 3e, and the R packages crow, shiny, shinytest2 and pkgload. Screenshots need Chrome.
 ---
 
 # Adding a shiny module
@@ -21,7 +21,7 @@ Run all scripts and R from the package root.
 
 In `DESCRIPTION`:
 
-- Add `crow`, `shinytest2` and `withr` to `Suggests`.
+- Add `crow` and `shinytest2` to `Suggests`.
   crow is a development-time dependency;
   only `foo_app()` calls it,
   so the package works without crow.
@@ -56,8 +56,12 @@ and its nested parent `x_counter_button`.
   - The app user:
     a reactive, which changes as the user interacts with the app,
     e.g. `increment_by = shiny::reactiveVal(1L)`.
-- Give every argument a default,
-  so that `foo_app()` runs without arguments.
+- Give an argument a default where a natural one exists,
+  such as a starting value.
+  Do not invent defaults for required inputs,
+  such as the data the module shows.
+  Instead, give `foo_app()` example `server_args`,
+  so that `foo_app()` still runs without arguments.
 - Assert the kind of each argument at the top of `foo_server()`,
   before `shiny::moduleServer()`.
   If the package imports crow,
@@ -89,8 +93,9 @@ and its nested parent `x_counter_button`.
 
 `foo_app(...)` passes `...` to `crow::module2app()`,
 so callers can set `ui_args`, `server_args` and `ui_wrapper`.
-The testbed prints the evaluated server arguments and return values,
-and exports the return value as the shinytest2 export `res`.
+The testbed prints the server arguments and return values.
+It exports the return value as the shinytest2 export `res`,
+and the printed trees as `server_args` and `returns`.
 
 ### Docs
 
@@ -137,7 +142,9 @@ test_that("foo_server counts by the increment", {
 
 The scaffold's second test drives `foo_app()` in Chrome with shinytest2.
 It screenshots only the module UI,
-because `crow::get_screenshot_args_attr()` selects it from the testbed.
+because `crow::local_app_driver()` takes its selector from the testbed
+(see `crow::get_screenshot_args_attr()`),
+and stops the app when the test ends.
 Extend it with the interactions that show what the module does,
 one `driver$expect_screenshot()` after each:
 

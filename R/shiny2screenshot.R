@@ -83,13 +83,14 @@ check_installed_shinytest2 <- function() {
 
 #' Get screenshot from shiny app
 #'
-#' Wrapper around [shinytest2::AppDriver()].
+#' Wrapper around [local_app_driver()].
 #' Shows only the shiny app at launch.
 #' To show interactions with an app, use a different function.
 #'
-#' @inheritParams shiny::runApp
-#' @param screenshot_args
-#' Passed to [`shinytest2::AppDriver`]'s `$new()` method.
+#' @param appDir
+#' A shiny app, or a function without arguments returning one,
+#' passed to `app` of [local_app_driver()].
+#' @inheritParams local_app_driver
 #' @param name
 #' If the shiny app is developed inside a package (recommended),
 #' the name of that package.
@@ -117,7 +118,7 @@ check_installed_shinytest2 <- function() {
 #' @export
 get_screenshot_from_app <- function(
   appDir,
-  screenshot_args = get_screenshot_args_attr(appDir),
+  screenshot_args = app_screenshot_args(appDir),
   name = character(1L),
   file = NULL,
   strict = FALSE
@@ -152,15 +153,10 @@ get_screenshot_from_app_strictly <- function(
   name,
   file
 ) {
-  check_installed_shinytest2()
   if (name != character(1L)) {
     elf::assert_pkg_installed_but_not_via_loadall(x = name)
   }
-  driver <- shinytest2::AppDriver$new(
-    app_dir = appDir,
-    screenshot_args = screenshot_args
-  )
-  withr::defer(driver$stop())
+  driver <- local_app_driver(appDir, screenshot_args = screenshot_args)
   driver$get_screenshot(file = file)
 }
 
