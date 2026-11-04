@@ -41,11 +41,13 @@ mount_server <- function(
   checkmate::assert_function(module_server, args = c("id"), null.ok = TRUE)
   checkmate::assert_list(server_args)
   # created outside the server function, so all sessions share them
-  overrides <- purrr::map(reactive_args(server_args), \(x) shiny::reactiveVal())
+  overrides <- purrr::imap(
+    reactive_args(server_args),
+    \(x, name) shiny::reactiveVal(label = paste0("crow_override_", name))
+  )
   effective_args <- server_args
-  effective_args[names(overrides)] <- purrr::map2(
-    server_args[names(overrides)],
-    overrides,
+  effective_args[names(overrides)] <- purrr::pmap(
+    list(server_args[names(overrides)], overrides, names(overrides)),
     overridable
   )
   if (is.null(module_server)) {
@@ -57,25 +59,36 @@ mount_server <- function(
   function(input, output, session) {
     shiny::observeEvent(
       input$crow_server_args,
-      set_overrides(overrides, input$crow_server_args)
+      set_overrides(overrides, input$crow_server_args),
+      label = "crow_server_args"
     )
     res <- module_server(id = "test_object")
     shiny::exportTestValues(
       res = fix_test_returns(res),
       server_args = tree_text(server_args, effective_args),
-      returns = tree_text(res)
+      returns = tree_text(res),
+      reactlog = session_reactlog(shiny::reactlog(), session$token)
     )
     display(server_args, effective_args, res)
     res
   }
 }
 
+session_reactlog <- function(log, session) {
+  purrr::keep(log, \(event) {
+    is.null(event$session) || identical(event$session, session)
+  })
+}
+
 reactive_args <- function(server_args) {
   purrr::keep(server_args[rlang::names2(server_args) != ""], shiny::is.reactive)
 }
 
-overridable <- function(original, override) {
-  shiny::reactive(if (is.null(override())) original() else override())
+overridable <- function(original, override, name) {
+  shiny::reactive(
+    if (is.null(override())) original() else override(),
+    label = paste0("crow_server_arg_", name)
+  )
 }
 
 #' Errors would end the session,
@@ -283,6 +296,11 @@ module2app_bare_server <- function(
 #'   each a list of the `unevaluated` and `evaluated` tree,
 #'   as text identical to the display of [module2app()]
 #'   (see [mixed_react_tree()]).
+#' - `reactlog`: the raw events of [shiny::reactlog()] for this session,
+#'   because tests and agents cannot call it in the app's process.
+#'   Empty, unless the app runs with `options(shiny.reactlog = TRUE)`,
+#'   such as from `local_app_driver(options = list(shiny.reactlog = TRUE))`.
+#'   The testbed's own reactives are labelled `crow_*`.
 #'
 #' [module2app()] displays the evaluated trees as outputs,
 #' which depend on, and thus change, the module's reactive graph

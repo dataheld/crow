@@ -181,6 +181,24 @@ describe("module2app_bare", {
       }
     )
   })
+  it("exports the reactlog events of its session", {
+    driver <- local_app_driver(
+      counter_button_app,
+      options = list(shiny.reactlog = TRUE)
+    )
+    driver$click(selector = "#test_object-button")
+    log <- driver$get_value(export = "reactlog")
+    labels <- purrr::map_chr(
+      purrr::keep(log, \(e) e$action == "define"),
+      "label"
+    )
+    expect_contains(labels, c("input$test_object-button", "crow_server_args"))
+    expect_length(unique(unlist(purrr::map(log, "session"))), 1)
+  })
+  it("exports no reactlog events without logging", {
+    driver <- local_app_driver(counter_button_app)
+    expect_equal(driver$get_value(export = "reactlog"), list())
+  })
   it("exports the trees of server arguments and return values", {
     driver <- local_app_driver(shinytest2_app_fn(
       module2app_bare(
