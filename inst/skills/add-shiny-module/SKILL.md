@@ -58,8 +58,7 @@ and its nested parent `x_counter_button`.
   - The app user:
     a reactive, which changes as the user interacts with the app,
     e.g. `increment_by = shiny::reactiveVal(1L)`.
-
-  Give every argument a default,
+- Give every argument a default,
   so that `foo_app()` runs without arguments.
 
 - Assert the kind of each argument at the top of `foo_server()`,
