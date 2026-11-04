@@ -23,3 +23,34 @@ Notice that it is the responsibility of your module server to
 assert whichever kinds of inputs it expects.
 Consider these [recommendations on server inputs](https://mastering-shiny.org/scaling-modules.html#server-inputs)
 on how to do this.
+
+## Inspecting the Reactive Graph
+
+To see the reactive graph of a module,
+use the [reactlog](https://rstudio.github.io/reactlog/) package,
+as described in
+[Mastering Shiny](https://mastering-shiny.org/reactive-graph.html#the-reactlog-package).
+Enable it before you run the testbed:
+
+```{r reactlog, eval = FALSE}
+reactlog::reactlog_enable()
+x_counter_button_app(server_args = list(deep = TRUE))
+```
+
+While the app runs, press Ctrl+F3 (Cmd+F3 on macOS)
+to show the reactlog up to that point.
+Alternatively, after the app stops,
+show the reactlog for the complete session:
+
+```{r reactlogShow, eval = FALSE}
+shiny::reactlogShow()
+```
+
+The testbed displays its inputs and return values,
+which adds reactive nodes to the graph.
+Your module's own nodes are in the `test_object` namespace;
+the testbed's displays are in the `inputs` and `returns` namespaces.
+To focus on your module,
+search for `test_object` in the reactlog;
+it then shows the matching nodes and their family trees.
+See also the section "Changes to the Reactive Graph" in `?module2app`.
