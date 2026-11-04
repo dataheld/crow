@@ -47,3 +47,19 @@ copilot plugin install "$(Rscript -e 'cat(system.file(package = "crow"))')"
 
 The plugin must match the installed crow version:
 reinstall it after you upgrade crow.
+
+The plugin's MCP server lets agents run a module of your package
+without crow's displays for humans,
+set its inputs, read its arguments, return values, reactive graph and logs,
+and screenshot it
+(see `?crow_tools`).
+It needs crow's suggested packages mcptools, ellmer, callr, pkgload and shinytest2,
+and Chrome.
+The server runs R code that the agent writes, with your rights;
+only a sandbox around the agent isolates your system from that code.
+To serve crow's tools together with [btw](https://posit-dev.github.io/btw/)'s,
+configure this server in your project instead:
+
+```sh
+Rscript -e 'mcptools::mcp_server(c(btw::btw_tools(c("docs", "pkg")), crow::crow_tools()), session_tools = FALSE)'
+```

@@ -36,7 +36,7 @@
         nullkomma.r.hashes.rdtools = "sha256-8BQ/3Vdl1vndn4BNdoHfjo4TP4ioBWv3Y1bZu22ej70=";
 
         perSystem =
-          { system, ... }:
+          { config, system, ... }:
           let
             testEnvironment = {
               SHINYTEST2_LOAD_TIMEOUT = "16000";
@@ -61,6 +61,16 @@
                   );
               }
             );
+            # Serves the working tree's MCP tools to agents in this repository.
+            nullkomma.agents.mcpServers.crow = {
+              type = "stdio";
+              command = lib.getExe' config.nullkomma.r.package "Rscript";
+              args = [
+                "--vanilla"
+                "-e"
+                "pkgload::load_all(quiet = TRUE); crow_mcp_server()"
+              ];
+            };
             nullkomma.devShell.env = testEnvironment;
             process-compose.dev.settings.processes = {
               r-check.environment = testEnvironment;

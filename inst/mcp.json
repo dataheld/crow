@@ -1,0 +1,10 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  "mcpServers": {
+    "crow": {
+      "type": "stdio",
+      "command": "Rscript",
+      "args": ["-e", "crow::crow_mcp_server('${PLUGIN_ROOT}')"]
+    }
+  }
+}
