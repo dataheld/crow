@@ -13,6 +13,11 @@ It can help with:
 - 📖 documentation
 - ... and more
 
+For example, `module2app()` shows a module in a full app,
+with the module's input arguments, UI and return values:
+
+![The module2app() testbed for a counter module, clicked three times](man/figures/crow_screenshots/module2app/double-counter.gif)
+
 ## Installation
 
 ```r
