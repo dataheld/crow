@@ -296,7 +296,7 @@ test_server_sections <- function(server, server_args, expr, reactive_graph) {
 testbed_sections <- function(user_data) {
   testbed <- user_data$crow_testbed
   tree_sections(
-    server_args = tree_text(testbed$server_args),
+    server_args = tree_text(testbed$server_args, testbed$effective_args),
     returns = tree_text(testbed$res)
   )
 }
