@@ -36,8 +36,14 @@
 #'
 #' Labels are shortened to one line.
 #' Shiny labels reactives and observers by their code,
-#' unless they are assigned to a name or given a `label`.
-#' Anonymous [shiny::reactiveVal()]s are labelled `reactiveVal`.
+#' unless they are given a `label`.
+#' Shiny names unlabelled [shiny::reactiveVal()]s and
+#' [shiny::reactiveValues()] after the variable they are assigned to,
+#' but only from source references,
+#' which installed packages usually lack.
+#' To get the same graph from installed packages,
+#' give these a `label`.
+#' Otherwise, they are labelled `reactiveVal` or `reactiveValues`.
 #' Inside [shiny::testServer()],
 #' outputs are labelled `output (unnamed in testServer)`,
 #' because shiny does not log their names there.
@@ -156,7 +162,7 @@ contract_edges <- function(edges, dropped) {
 
 one_line_label <- function(label, width = 60L) {
   label <- gsub("\\s+", " ", trimws(label))
-  label <- sub("^(reactiveVal(ues)?)[0-9a-f]{8}\\b", "\\1", label)
+  label <- sub("^(reactiveVal|reactiveValues)[0-9a-f]{8}\\b", "\\1", label)
   label[grepl("private$withCurrentOutput(name,", label, fixed = TRUE)] <-
     "output (unnamed in testServer)"
   ifelse(

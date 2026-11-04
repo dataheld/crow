@@ -73,11 +73,16 @@ describe("reactlog_graph", {
     )
   })
   it("filters to one session", {
-    log <- list(
-      list(action = "define", reactId = "r1", label = "a", type = "t", session = "s1"),
-      list(action = "define", reactId = "r2", label = "b", type = "t", session = "s2"),
-      list(action = "define", reactId = "r3", label = "c", type = "t", session = NULL)
-    )
+    define <- function(label, session) {
+      list(
+        action = "define",
+        reactId = label,
+        label = label,
+        type = "t",
+        session = session
+      )
+    }
+    log <- list(define("a", "s1"), define("b", "s2"), define("c", NULL))
     expect_equal(reactlog_graph(log, session = "s1")$nodes$label, c("a", "c"))
     expect_equal(reactlog_graph(log)$nodes$label, c("a", "b", "c"))
   })
@@ -92,7 +97,8 @@ describe("reactlog_graph", {
       options = list(shiny.reactlog = TRUE)
     )
     driver$click(selector = "#test_object-button")
-    expect_snapshot(print(reactlog_graph(driver$get_value(export = "reactlog"))))
+    graph <- reactlog_graph(driver$get_value(export = "reactlog"))
+    expect_snapshot(print(graph))
   })
   it("exports no events from apps without logging", {
     driver <- local_app_driver(counter_button_app)
@@ -102,7 +108,10 @@ describe("reactlog_graph", {
 
 describe("one_line_label", {
   it("shortens code to one line", {
-    expect_equal(one_line_label("reactive({\n    count()\n})"), "reactive({ count() })")
+    expect_equal(
+      one_line_label("reactive({\n    count()\n})"),
+      "reactive({ count() })"
+    )
     expect_equal(nchar(one_line_label(strrep("x", 100))), 60)
   })
   it("drops the random suffix of anonymous reactive values", {
@@ -113,7 +122,10 @@ describe("one_line_label", {
 
 describe("contract_edges", {
   it("connects the dependencies of dropped nodes to their dependents", {
-    edges <- data.frame(from = c("a", "b", "b", "c"), to = c("b", "c", "d", "d"))
+    edges <- data.frame(
+      from = c("a", "b", "b", "c"),
+      to = c("b", "c", "d", "d")
+    )
     expect_equal(
       contract_edges(edges, c("b", "c")),
       data.frame(from = "a", to = "d"),
@@ -125,7 +137,11 @@ describe("contract_edges", {
 describe("format.reactlog_graph", {
   it("numbers duplicated labels", {
     graph <- new_reactlog_graph(
-      nodes = data.frame(id = c("r1", "r2", "r3"), label = c("a", "b", "a"), type = "t"),
+      nodes = data.frame(
+        id = c("r1", "r2", "r3"),
+        label = c("a", "b", "a"),
+        type = "t"
+      ),
       edges = data.frame(from = c("r1", "r3"), to = "r2")
     )
     expect_equal(format(graph), c("a [1] -> b", "a [2] -> b"))

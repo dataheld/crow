@@ -18,7 +18,7 @@
 # reactlog_graph / reads the log exported from a running app
 
     Code
-      print(reactlog_graph(driver$get_value(export = "reactlog")))
+      print(graph)
     Output
       count -> output$test_object-out
       count -> reactive({ count() })

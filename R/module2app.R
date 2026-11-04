@@ -1,236 +1,42 @@
-# module2app helper ====
+# testbed core ====
 
-#' Show a module in a full app
-#'
-#' During development of shiny modules,
-#' it can be helpful to see and test a module in the context of a shiny app.
-#' This function wraps the module UI and server functions in full shiny
-#' app for those purposes.
-#' You can also pass reactive values to the server function,
-#' to observe how your module reacts to them.
-#'
-#' @details
-#' If you only want to test the server logic of a module,
-#' you don't need this function.
-#' You can just pass the module server function to [shiny::testServer()].
-#' Hadley Wickhams Mastering Shiny as a section on
-#' [testing modules](https://mastering-shiny.org/scaling-testing.html#modules).
-#'
-#' See [mixed_react_tree()] for details on the shown input and return values.
-#' See [module2app_bare()] for the values exported for tests,
-#' for changing reactive `server_args` while the app runs,
-#' and for a testbed without these displays.
-#'
-#' If you are testing screenshots,
-#' you are recommended to use [get_screenshot_args_attr()]
-#' to screenshot only your actual module UI,
-#' without the surrounding *crow* boilerplate.
-#'
-#' @param module_ui,module_server
-#' Module functions.
-#' @param ui_args,server_args
-#' Additional arguments passed to `module_server`and `module_ui`.
-#' `server_args` can be [shiny::reactive()]s,
-#' if corresponding argument in `module_server` accepts it.
-#' Named reactive `server_args` can change while the app runs
-#' (see [module2app_bare()]).
-#' @inheritParams shiny::shinyApp
-#' @inheritDotParams shiny::shinyApp
-#' @family modules
-#' @export
-module2app <- function(
-  module_ui = NULL,
-  module_server = NULL,
-  ui_args = list(),
-  server_args = list(),
-  ui_wrapper = shiny::basicPage,
-  options = list(test.mode = TRUE),
-  ...
-) {
-  new_module_app(
-    ui = module2app_ui(module_ui, ui_args, ui_wrapper = ui_wrapper),
-    server = module2app_server(module_server, server_args),
-    options = options,
+new_testbed <- function(testbed_ui, testbed_server) {
+  force(testbed_ui)
+  force(testbed_server)
+  function(
+    module_ui = NULL,
+    module_server = NULL,
+    ui_args = list(),
+    server_args = list(),
+    ui_wrapper = shiny::basicPage,
+    options = list(test.mode = TRUE),
     ...
-  )
-}
-
-new_module_app <- function(ui, server, options, ...) {
-  res <- shiny::shinyApp(ui = ui, server = server, options = options, ...)
-  attributes(res) <- c(
-    attributes(res),
-    list(
-      crow_screenshot_args = list(
-        # need to select down to child
-        # because only that actually has a height
-        # the parent div may not, and will then fail the screenshot
-        selector = paste0("#", inner_module_id, " > *")
+  ) {
+    res <- shiny::shinyApp(
+      ui = testbed_ui(module_ui, ui_args, ui_wrapper = ui_wrapper),
+      server = testbed_server(module_server, server_args),
+      options = options,
+      ...
+    )
+    attributes(res) <- c(
+      attributes(res),
+      list(
+        crow_screenshot_args = list(
+          # need to select down to child
+          # because only that actually has a height
+          # the parent div may not, and will then fail the screenshot
+          selector = paste0("#", inner_module_id, " > *")
+        )
       )
     )
-  )
-  res
-}
-
-#' @describeIn module2app UI
-#' @param ui_wrapper
-#' A function to wrap the resulting [shiny::tagList()] in.
-#' Must yield a full shiny UI,
-#' such as [shiny::basicPage()] or [shiny::bootstrapPage()].
-#' For maximum reusability of a module,
-#' avoid depending on the wrapper and only return "vanilla" UI.
-#' @example inst/examples/module2app/ui/navbar.R
-#' @example inst/examples/module2app/ui/bootstrap.R
-#' @export
-module2app_ui <- function(
-  module_ui = NULL,
-  ui_args = list(),
-  ui_wrapper = shiny::basicPage
-) {
-  ui_wrapper(
-    shiny::h1(shiny::code("module2app"), "Testbed"),
-    shiny::h2("Server Input Arguments"),
-    mixed_react_tree_ui("inputs"),
-    shiny::h2("Module UI"),
-    module_div(module_ui, ui_args),
-    shiny::h2("Server Return Values"),
-    mixed_react_tree_ui("returns")
-  )
-}
-
-module_div <- function(module_ui = NULL, ui_args = list()) {
-  checkmate::assert_function(module_ui, args = c("id"), null.ok = TRUE)
-  if (is.null(module_ui)) {
-    module_ui <- no_fun_provided_ui
+    res
   }
-  checkmate::assert_list(ui_args)
-  module_ui <- purrr::partial(module_ui, !!!ui_args)
-  shiny::div(
-    module_ui(id = "test_object"),
-    id = inner_module_id
-  )
 }
 
-inner_module_id <- "crow-module2app-module-ui"
-
-#' @describeIn module2app Server
-#' @export
-module2app_server <- function(module_server = NULL, server_args = list()) {
-  testbed_server(module_server, server_args, display = display_trees)
-}
-
-display_trees <- function(server_args, returns) {
-  mixed_react_tree_server(id = "inputs", tree = server_args)
-  mixed_react_tree_server(id = "returns", tree = returns)
-}
-
-# module2app_bare helper ====
-
-#' Show only a module in a bare app
-#'
-#' Mounts a module like [module2app()], but without its headings and displays.
-#' The app shows only the module UI,
-#' so screenshots of the whole page show only the module.
-#' Use it for automated checks, such as by coding agents or in tests;
-#' use [module2app()] to look at a module yourself.
-#'
-#' @details
-#' Both testbeds mount the module with the ID `test_object`
-#' and export these values for [`shinytest2::AppDriver`]'s `$get_value()`:
-#' - `res`: the return value of the module server,
-#'   called if it is a reactive.
-#' - `server_args`, `returns`:
-#'   the server arguments and the return values,
-#'   each a list of the `unevaluated` and `evaluated` tree,
-#'   as text identical to the display of [module2app()]
-#'   (see [mixed_react_tree()]).
-#' - `reactlog`: the events of [shiny::reactlog()] for this session,
-#'   for [reactlog_graph()].
-#'   Empty, unless the app runs with `options(shiny.reactlog = TRUE)`,
-#'   such as from `local_app_driver(options = list(shiny.reactlog = TRUE))`.
-#'
-#' Unlike [module2app()],
-#' the bare testbed adds no outputs which depend on the module's reactives.
-#' It evaluates the trees only when they are requested.
-#' Its reactive graph is thus the same as that of an app
-#' which only uses the module.
-#'
-#' @section Changing server arguments while the app runs:
-#' Both testbeds read the hidden input `crow_server_args`,
-#' a JSON object keyed by server argument name.
-#' Its values replace the values of these arguments,
-#' for all sessions of the app.
-#' A `null` restores the value passed at start.
-#' The module receives each named reactive in `server_args`
-#' wrapped in a [shiny::reactive()],
-#' so it cannot set the original [shiny::reactiveVal()].
-#' Other server arguments are fixed at start.
-#' The displayed and exported `server_args` show the current values.
-#'
-#' From R, through [`shinytest2::AppDriver`] (see [local_app_driver()]):
-#' ```r
-#' driver$set_inputs(
-#'   crow_server_args = list(increment_by = 5),
-#'   allow_no_input_binding_ = TRUE
-#' )
-#' ```
-#' From the browser console:
-#' ```js
-#' Shiny.setInputValue("crow_server_args", {increment_by: 5})
-#' ```
-#' JSON numbers arrive as doubles.
-#' The input accepts only JSON, never R code,
-#' because the app does not check the origin of websocket connections:
-#' any web page open in the same browser can send this input.
-#'
-#' Changing an unknown or a non-reactive argument changes nothing.
-#' The error goes to the app's standard error and a notification,
-#' because an error would end the session.
-#'
-#' @inheritParams module2app
-#' @inheritParams module2app_ui
-#' @inheritDotParams shiny::shinyApp
-#' @family modules
-#' @export
-module2app_bare <- function(
-  module_ui = NULL,
-  module_server = NULL,
-  ui_args = list(),
-  server_args = list(),
-  ui_wrapper = shiny::basicPage,
-  options = list(test.mode = TRUE),
-  ...
-) {
-  new_module_app(
-    ui = module2app_bare_ui(module_ui, ui_args, ui_wrapper = ui_wrapper),
-    server = module2app_bare_server(module_server, server_args),
-    options = options,
-    ...
-  )
-}
-
-#' @describeIn module2app_bare UI
-#' @export
-module2app_bare_ui <- function(
-  module_ui = NULL,
-  ui_args = list(),
-  ui_wrapper = shiny::basicPage
-) {
-  ui_wrapper(module_div(module_ui, ui_args))
-}
-
-#' @describeIn module2app_bare Server
-#' @export
-module2app_bare_server <- function(
-  module_server = NULL,
-  server_args = list()
-) {
-  testbed_server(module_server, server_args)
-}
-
-testbed_server <- function(
+mount_server <- function(
   module_server,
   server_args,
-  display = function(server_args, returns) NULL
+  display = function(server_args, effective_args, returns) NULL
 ) {
   checkmate::assert_function(module_server, args = c("id"), null.ok = TRUE)
   checkmate::assert_list(server_args)
@@ -239,7 +45,8 @@ testbed_server <- function(
     reactive_args(server_args),
     \(x, name) shiny::reactiveVal(label = paste0("crow_override_", name))
   )
-  server_args[names(overrides)] <- purrr::pmap(
+  effective_args <- server_args
+  effective_args[names(overrides)] <- purrr::pmap(
     list(server_args[names(overrides)], overrides, names(overrides)),
     overridable
   )
@@ -247,7 +54,7 @@ testbed_server <- function(
     module_server <- no_fun_provided_server
   } else {
     # partialising above boilerplate with server args makes no sense
-    module_server <- purrr::partial(module_server, !!!server_args)
+    module_server <- purrr::partial(module_server, !!!effective_args)
   }
   function(input, output, session) {
     shiny::observeEvent(
@@ -260,11 +67,11 @@ testbed_server <- function(
     session$userData$crow_testbed <- list(server_args = server_args, res = res)
     shiny::exportTestValues(
       res = fix_test_returns(res),
-      server_args = tree_text(server_args),
+      server_args = tree_text(server_args, effective_args),
       returns = tree_text(res),
       reactlog = session_reactlog(shiny::reactlog(), session$token)
     )
-    display(server_args, res)
+    display(server_args, effective_args, res)
     res
   }
 }
@@ -326,6 +133,193 @@ check_overridable <- function(values, overridable) {
 }
 
 backticks <- function(x) paste0("`", x, "`", collapse = ", ")
+
+# module2app helper ====
+
+#' @describeIn module2app UI
+#' @param ui_wrapper
+#' A function to wrap the resulting [shiny::tagList()] in.
+#' Must yield a full shiny UI,
+#' such as [shiny::basicPage()] or [shiny::bootstrapPage()].
+#' For maximum reusability of a module,
+#' avoid depending on the wrapper and only return "vanilla" UI.
+#' @example inst/examples/module2app/ui/navbar.R
+#' @example inst/examples/module2app/ui/bootstrap.R
+#' @export
+module2app_ui <- function(
+  module_ui = NULL,
+  ui_args = list(),
+  ui_wrapper = shiny::basicPage
+) {
+  ui_wrapper(
+    shiny::h1(shiny::code("module2app"), "Testbed"),
+    shiny::h2("Server Input Arguments"),
+    mixed_react_tree_ui("inputs"),
+    shiny::h2("Module UI"),
+    module_div(module_ui, ui_args),
+    shiny::h2("Server Return Values"),
+    mixed_react_tree_ui("returns")
+  )
+}
+
+module_div <- function(module_ui = NULL, ui_args = list()) {
+  checkmate::assert_function(module_ui, args = c("id"), null.ok = TRUE)
+  if (is.null(module_ui)) {
+    module_ui <- no_fun_provided_ui
+  }
+  checkmate::assert_list(ui_args)
+  module_ui <- purrr::partial(module_ui, !!!ui_args)
+  shiny::div(
+    module_ui(id = "test_object"),
+    id = inner_module_id
+  )
+}
+
+inner_module_id <- "crow-module2app-module-ui"
+
+#' @describeIn module2app Server
+#' @export
+module2app_server <- function(module_server = NULL, server_args = list()) {
+  mount_server(module_server, server_args, display = display_trees)
+}
+
+display_trees <- function(server_args, effective_args, returns) {
+  tree_server(id = "inputs", tree = server_args, evaluated = effective_args)
+  mixed_react_tree_server(id = "returns", tree = returns)
+}
+
+#' Show a module in a full app
+#'
+#' During development of shiny modules,
+#' it can be helpful to see and test a module in the context of a shiny app.
+#' This function wraps the module UI and server functions in full shiny
+#' app for those purposes.
+#' You can also pass reactive values to the server function,
+#' to observe how your module reacts to them.
+#'
+#' @details
+#' If you only want to test the server logic of a module,
+#' you don't need this function.
+#' You can just pass the module server function to [shiny::testServer()].
+#' Hadley Wickhams Mastering Shiny as a section on
+#' [testing modules](https://mastering-shiny.org/scaling-testing.html#modules).
+#'
+#' See [mixed_react_tree()] for details on the shown input and return values.
+#' See [module2app_bare()] for the values exported for tests,
+#' for changing reactive `server_args` while the app runs,
+#' and for a testbed without these displays.
+#'
+#' If you are testing screenshots,
+#' you are recommended to use [get_screenshot_args_attr()]
+#' to screenshot only your actual module UI,
+#' without the surrounding *crow* boilerplate.
+#'
+#' @param module_ui,module_server
+#' Module functions.
+#' @param ui_args,server_args
+#' Additional arguments passed to `module_server`and `module_ui`.
+#' `server_args` can be [shiny::reactive()]s,
+#' if corresponding argument in `module_server` accepts it.
+#' Named reactive `server_args` can change while the app runs
+#' (see [module2app_bare()]).
+#' @inheritParams shiny::shinyApp
+#' @inheritDotParams shiny::shinyApp
+#' @family modules
+#' @export
+module2app <- new_testbed(module2app_ui, module2app_server)
+
+# module2app_bare helper ====
+
+#' @describeIn module2app_bare UI
+#' @export
+module2app_bare_ui <- function(
+  module_ui = NULL,
+  ui_args = list(),
+  ui_wrapper = shiny::basicPage
+) {
+  ui_wrapper(module_div(module_ui, ui_args))
+}
+
+#' @describeIn module2app_bare Server
+#' @export
+module2app_bare_server <- function(
+  module_server = NULL,
+  server_args = list()
+) {
+  mount_server(module_server, server_args)
+}
+
+#' Show only a module in a bare app
+#'
+#' Mounts a module like [module2app()], but without its headings and displays.
+#' The app shows only the module UI,
+#' so screenshots of the whole page show only the module.
+#' Use it for automated checks, such as by coding agents or in tests;
+#' use [module2app()] to look at a module yourself.
+#'
+#' @details
+#' Both testbeds mount the module with the ID `test_object`
+#' and export these values for [`shinytest2::AppDriver`]'s `$get_value()`:
+#' - `res`: the return value of the module server,
+#'   called if it is a reactive.
+#' - `server_args`, `returns`:
+#'   the server arguments and the return values,
+#'   each a list of the `unevaluated` and `evaluated` tree,
+#'   as text identical to the display of [module2app()]
+#'   (see [mixed_react_tree()]).
+#' - `reactlog`: the events of [shiny::reactlog()] for this session,
+#'   for [reactlog_graph()].
+#'   Empty, unless the app runs with `options(shiny.reactlog = TRUE)`,
+#'   such as from `local_app_driver(options = list(shiny.reactlog = TRUE))`.
+#'
+#' Unlike [module2app()],
+#' the bare testbed adds no outputs which depend on the module's reactives.
+#' It evaluates the trees only when they are requested.
+#' Its reactive graph is thus the same as that of an app
+#' which only uses the module.
+#'
+#' @section Changing server arguments while the app runs:
+#' Both testbeds read the hidden input `crow_server_args`,
+#' a JSON object keyed by server argument name.
+#' Its values replace the values of these arguments,
+#' for all sessions of the app.
+#' A `null` restores the value passed at start.
+#' The module receives each named reactive in `server_args`
+#' wrapped in a [shiny::reactive()],
+#' so it cannot set the original [shiny::reactiveVal()].
+#' Other server arguments are fixed at start.
+#' The displayed and exported `server_args` show the reactives as passed,
+#' but evaluate to the current values.
+#'
+#' From R, through [`shinytest2::AppDriver`] (see [local_app_driver()]):
+#' ```r
+#' driver$set_inputs(
+#'   crow_server_args = list(increment_by = 5),
+#'   allow_no_input_binding_ = TRUE
+#' )
+#' ```
+#' From the browser console:
+#' ```js
+#' Shiny.setInputValue("crow_server_args", {increment_by: 5})
+#' ```
+#' JSON numbers arrive as doubles.
+#' The input accepts only JSON, never R code,
+#' because the app does not check the origin of websocket connections:
+#' any web page open in the same browser can send this input.
+#'
+#' Changing an unknown or a non-reactive argument changes nothing.
+#' The error goes to the app's standard error and a notification,
+#' because an error would end the session.
+#'
+#' @inheritParams module2app
+#' @inheritParams module2app_ui
+#' @inheritDotParams shiny::shinyApp
+#' @family modules
+#' @export
+module2app_bare <- new_testbed(
+  module2app_bare_ui,
+  module2app_bare_server
+)
 
 #' Need to protect against non-reactive values
 #' @noRd
@@ -440,11 +434,17 @@ mixed_react_tree_ui <- function(id) {
 #' as passed around between modules.
 #' @export
 mixed_react_tree_server <- function(id, tree = shiny::reactive(NULL)) {
+  tree_server(id, tree)
+}
+
+#' Shows `evaluated`, such as overridden server arguments, in place of `tree`
+#' @noRd
+tree_server <- function(id, tree, evaluated = tree) {
   shiny::moduleServer(
     id = id,
     function(input, output, session) {
       output$unev <- shiny::renderPrint(tree_unevaluated(tree))
-      output$eval <- shiny::renderPrint(tree_evaluated(tree))
+      output$eval <- shiny::renderPrint(tree_evaluated(evaluated))
     }
   )
 }
@@ -461,10 +461,10 @@ tree_evaluated <- function(tree) {
 
 #' Print both trees to text, as [mixed_react_tree_server()] displays them
 #' @noRd
-tree_text <- function(tree) {
+tree_text <- function(tree, evaluated = tree) {
   shiny::isolate(list(
     unevaluated = print_text(tree_unevaluated(tree)),
-    evaluated = print_text(tree_evaluated(tree))
+    evaluated = print_text(tree_evaluated(evaluated))
   ))
 }
 
@@ -569,7 +569,7 @@ counter_button_server <- function(
   shiny::moduleServer(
     id,
     function(input, output, session) {
-      count <- shiny::reactiveVal(set_to)
+      count <- shiny::reactiveVal(set_to, label = "count")
       shiny::observeEvent(input$button, {
         count(count() + increment_by())
       })
