@@ -23,6 +23,14 @@
 #' to screenshot only your actual module UI,
 #' without the surrounding *crow* boilerplate.
 #'
+#' For package browser tests, pass an exported app factory,
+#' e.g. `shinytest2::AppDriver$new(counter_button_app)`,
+#' not the result of calling it.
+#' This lets shinytest2 load working-tree code in the background process.
+#' Pre-created app objects can still use an older installed namespace.
+#' See shinytest2's
+#' [package testing guide](https://rstudio.github.io/shinytest2/articles/use-package.html).
+#'
 #' @param module_ui,module_server
 #' Module functions.
 #' @param ui_args,server_args

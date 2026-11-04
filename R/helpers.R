@@ -21,10 +21,6 @@ examples_app <- function(example = "01_hello") {
   res$value
 }
 
-skip_if_load_all2 <- function() {
-  elf::skip_if_pkg_installed_but_not_via_loadall("crow")
-}
-
 skip_example_screenshots <- function() {
   testthat::skip(
     message = paste(

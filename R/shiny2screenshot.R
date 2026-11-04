@@ -87,18 +87,21 @@ check_installed_shinytest2 <- function() {
 #' Shows only the shiny app at launch.
 #' To show interactions with an app, use a different function.
 #'
-#' @inheritParams shiny::runApp
+#' @param appDir
+#' A Shiny application directory, object, or zero-argument app factory.
+#' For package source tests, pass an exported factory rather than an app object:
+#' shinytest2 then loads the working-tree package in its background process.
+#' Pre-created objects can still use an older installed namespace.
 #' @param screenshot_args
 #' Passed to [`shinytest2::AppDriver`]'s `$new()` method.
+#' When passing a factory, supply the returned app's screenshot settings
+#' explicitly, e.g. `get_screenshot_args_attr(counter_button_app())`.
 #' @param name
-#' If the shiny app is developed inside a package (recommended),
-#' the name of that package.
-#' The screenshot is created using the (last)
-#' *installed* (not `pkgload::load_all()`d) version of that package.
-#' When the name is provided,
-#' the function can test whether it is using
-#' the installed version of that package,
-#' to avoid confusion (recommended).
+#' Optional package name.
+#' When provided, require that package to be installed and not loaded by
+#' `pkgload::load_all()`.
+#' Leave unset to allow source testing with an app factory.
+#' This check does not select which package version shinytest2 loads.
 #' @param strict
 #' Should the function error out,
 #' when the various conditions for creating screenshots are not met?
@@ -111,7 +114,7 @@ check_installed_shinytest2 <- function() {
 #' Leave to `NULL`.
 #' @examples
 #' \dontrun{
-#' get_screenshot_from_app(examples_app())
+#' get_screenshot_from_app(examples_app)
 #' }
 #' @family screenshot
 #' @export
