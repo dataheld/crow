@@ -6,7 +6,7 @@ test_that("example app for manually numbered, named screenshots", {
   )
   skip_example_screenshots()
   driver <- shinytest2::AppDriver$new(
-    examples_app,
+    examples_app(),
     variant = shinytest2::platform_variant(r_version = FALSE)
   )
   purrr::walk(
@@ -22,10 +22,7 @@ test_that("example app for automatically numbered, named screenshots", {
   announce_snapshot_file("mpg-002.png")
   skip_example_screenshots()
   driver <- shinytest2::AppDriver$new(
-    app_factory({
-      library(crow)
-      examples_app("04_mpg")
-    }),
+    examples_app("04_mpg"),
     name = "mpg",
     variant = shinytest2::platform_variant(r_version = FALSE)
   )
@@ -38,10 +35,7 @@ test_that("example app for automatically numbered, unnamed screenshots", {
   announce_snapshot_file("002.png")
   skip_example_screenshots()
   driver <- shinytest2::AppDriver$new(
-    app_factory({
-      library(crow)
-      examples_app("05_sliders")
-    }),
+    examples_app("05_sliders"),
     variant = shinytest2::platform_variant(r_version = FALSE)
   )
   withr::defer(driver$stop())
@@ -55,10 +49,7 @@ test_that("example app for non-numbered, named screenshots", {
   driver <- shinytest2::AppDriver$new(
     # 06_tabsets example was bad to use,
     # because it uses rnorm and thus keeps changing
-    app_factory({
-      library(crow)
-      examples_app("07_widgets")
-    }),
+    examples_app("07_widgets"),
     variant = shinytest2::platform_variant(r_version = FALSE)
   )
   driver$expect_screenshot(name = "foo")

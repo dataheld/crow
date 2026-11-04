@@ -146,6 +146,8 @@ expect_equal(driver$get_value(export = "res"), 1L)
 - Pass the exported factory `foo_app`, not the app object `foo_app()`:
   shinytest2 then runs the working tree (via `pkgload::load_all()`),
   not an installed, possibly outdated package.
+  To pass arguments, wrap the call in `crow::app_fn()`,
+  e.g. `crow::app_fn(foo_app(ui_wrapper = bslib::page_fluid))`.
 - Avoid randomness and time in the UI;
   screenshots must be identical between runs.
 
