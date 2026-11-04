@@ -114,7 +114,7 @@ lightest first:
 | Question                                                           | Tool                                                           |
 | ------------------------------------------------------------------ | -------------------------------------------------------------- |
 | Server logic, reactive arguments, return values, outputs as values | `module_test_server`                                           |
-| Which reactives depend on which                                    | `module_test_server` with `reactive_graph`                     |
+| Which reactives depend on which                                    | `module_test_server` with `reactlog`                           |
 | Rendered HTML, JavaScript, layout                                  | `module_app_start`, then `module_app_set` and `module_app_get` |
 | How the module looks                                               | `module_app_screenshot` on a running app                       |
 

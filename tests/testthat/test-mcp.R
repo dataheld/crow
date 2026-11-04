@@ -84,18 +84,20 @@ test_that("module_test_server() changes reactive server arguments", {
   expect_match(res, "$increment_by\n[1] 5", fixed = TRUE)
 })
 
-test_that("module_test_server() reports the reactive graph", {
+test_that("module_test_server() reports reactlog events on request", {
   res <- tool("module_test_server")(
     path = pkg_root(),
     server = "counter_button_server",
     expr = "session$setInputs(`test_object-button` = 1)",
-    reactive_graph = TRUE
+    reactlog = TRUE
   )
-  expect_match(
-    res,
-    "## Reactive graph\n[^#]*input\\$test_object-button -> observeEvent"
+  expect_match(res, "## Reactlog events\n{\"action\":", fixed = TRUE)
+  expect_match(res, "input$test_object-button", fixed = TRUE)
+  expect_no_match(
+    tool("module_test_server")(pkg_root(), "counter_button_server"),
+    "Reactlog",
+    fixed = TRUE
   )
-  expect_no_match(res, "crow_", fixed = TRUE)
 })
 
 test_that("module_test_server() reports errors first", {
@@ -143,9 +145,10 @@ test_that("module apps start, change, report, screenshot and stop", {
   )
   expect_no_match(wrong, "Listening on", fixed = TRUE)
 
-  get <- tool("module_app_get")(id, reactive_graph = TRUE)
+  get <- tool("module_app_get")(id, reactlog = TRUE)
   expect_match(get, "output$`test_object-out`", fixed = TRUE)
-  expect_match(get, "## Reactive graph\n[^#]*input\\$test_object-button ->")
+  expect_match(get, "input$test_object-button", fixed = TRUE)
+  expect_match(get, "## Reactlog events", fixed = TRUE)
 
   shot <- tool("module_app_screenshot")(id)
   png <- regmatches(shot, regexpr("[^\n ]+\\.png", shot))

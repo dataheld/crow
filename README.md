@@ -55,7 +55,7 @@ reinstall it after you upgrade crow.
 
 The plugin's MCP server lets agents run a module of your package
 without crow's displays for humans,
-set its inputs, read its arguments, return values, reactive graph and logs,
+set its inputs, read its arguments, return values, reactlog events and logs,
 and screenshot it
 (see `?crow_tools`).
 It needs crow's suggested packages mcptools, ellmer, callr, pkgload and shinytest2,

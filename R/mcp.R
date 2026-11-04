@@ -24,7 +24,7 @@
 #'
 #' All tools report the server arguments and return values
 #' as unevaluated and evaluated trees (see [mixed_react_tree()]),
-#' the module's reactive graph on request,
+#' the raw events of [shiny::reactlog()] on request,
 #' and the logs of their R and shiny processes,
 #' errors first.
 #'
@@ -78,8 +78,13 @@ crow_tools <- function() {
     "e.g. `list(increment_by = shiny::reactiveVal(1L))`.",
     "Only reactives passed here can be changed later."
   ))
-  reactive_graph <- ellmer::type_boolean(
-    "Whether to report the module's reactive graph, one edge per line.",
+  reactlog <- ellmer::type_boolean(
+    paste(
+      "Whether to report the raw events of shiny::reactlog() for the",
+      "module's session, one JSON object per line, to inspect which reactives",
+      "depend on which. The testbed's own reactives are labelled `crow_*`.",
+      "Long; request it only when needed."
+    ),
     required = FALSE
   )
   id <- ellmer::type_string("ID of the running app, from module_app_start.")
@@ -110,7 +115,7 @@ crow_tools <- function() {
           "server arguments with",
           "session$setInputs(crow_server_args = list(increment_by = 5))."
         )),
-        reactive_graph = reactive_graph
+        reactlog = reactlog
       )
     ),
     ellmer::tool(
@@ -176,7 +181,7 @@ crow_tools <- function() {
         "Report a running module app: trees of server arguments and",
         "return value, the module's outputs, and the new logs."
       ),
-      arguments = list(id = id, reactive_graph = reactive_graph)
+      arguments = list(id = id, reactlog = reactlog)
     ),
     ellmer::tool(
       module_app_screenshot,
@@ -239,7 +244,7 @@ module_test_server <- function(
   server = "NULL",
   server_args = "list()",
   expr = "NULL",
-  reactive_graph = FALSE
+  reactlog = FALSE
 ) {
   log <- tempfile(fileext = ".log")
   on.exit(unlink(log))
@@ -248,7 +253,7 @@ module_test_server <- function(
       child_call,
       args = list(
         "test_server_sections",
-        list(server, server_args, expr, reactive_graph),
+        list(server, server_args, expr, reactlog),
         path
       ),
       wd = path,
@@ -263,21 +268,21 @@ module_test_server <- function(
 
 #' Runs in the R process at the package root.
 #' @noRd
-test_server_sections <- function(server, server_args, expr, reactive_graph) {
+test_server_sections <- function(server, server_args, expr, reactlog) {
   env <- new.env(parent = asNamespace(pkgload::pkg_name()))
   server <- eval(rlang::parse_expr(server), env)
   server_args <- eval(rlang::parse_expr(server_args), env)
   expr <- rlang::parse_expr(paste0("{\n", expr, "\n}"))
-  options(shiny.reactlog = reactive_graph)
+  options(shiny.reactlog = reactlog)
   sections <- list()
   conditions <- character()
   record <- function(value, env) {
     session <- get("session", envir = env)
     sections[["Value of `expr`"]] <<- print_text(value)
     sections <<- c(sections, testbed_sections(session$userData))
-    if (reactive_graph) {
-      sections[["Reactive graph"]] <<- format(
-        reactlog_graph(session = session$token)
+    if (reactlog) {
+      sections[["Reactlog events"]] <<- reactlog_lines(
+        session_reactlog(shiny::reactlog(), session$token)
       )
     }
   }
@@ -369,8 +374,8 @@ module_app_set <- function(id, inputs = "{}", server_args = "{}") {
   ))
 }
 
-module_app_get <- function(id, reactive_graph = FALSE) {
-  agent_report(app_run(id, "app_sections", list(TRUE, reactive_graph)))
+module_app_get <- function(id, reactlog = FALSE) {
+  agent_report(app_run(id, "app_sections", list(TRUE, reactlog)))
 }
 
 module_app_screenshot <- function(id) {
@@ -481,7 +486,7 @@ app_stop_child <- function() {
 
 app_sections <- function(
   outputs = FALSE,
-  reactive_graph = FALSE,
+  reactlog = FALSE,
   trees = TRUE
 ) {
   driver <- crow_app()$driver
@@ -502,15 +507,22 @@ app_sections <- function(
       purrr::map_chr(values, \(x) print_text(x))
     )
   }
-  if (reactive_graph) {
-    sections[["Reactive graph"]] <- format(
-      reactlog_graph(driver$get_value(export = "reactlog"))
+  if (reactlog) {
+    sections[["Reactlog events"]] <- reactlog_lines(
+      driver$get_value(export = "reactlog")
     )
   }
   c(sections, list(Log = new_log_lines()))
 }
 
 crow_app <- function() get("crow_app", envir = globalenv())
+
+reactlog_lines <- function(events) {
+  purrr::map_chr(
+    events,
+    \(event) jsonlite::toJSON(event, auto_unbox = TRUE, null = "null")
+  )
+}
 
 new_log_lines <- function() {
   app <- crow_app()
