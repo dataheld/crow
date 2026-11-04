@@ -191,6 +191,7 @@ module2app_bare_server <- function(
 #' @inheritParams module2app_ui
 #' @inheritDotParams shiny::shinyApp
 #' @family modules
+#' @family shinytest2
 #' @export
 module2app_bare <- new_testbed(
   module2app_bare_ui,
@@ -548,6 +549,7 @@ x_counter_button_server <- function(id, set_to = 2L, deep = FALSE) {
 #' @export
 #' @family modules
 #' @family screenshot
+#' @family shinytest2
 get_screenshot_args_attr <- function(appDir) {
   if (has_crow_attrs(appDir)) {
     res <- attr(appDir, which = "crow_screenshot_args")
