@@ -18,6 +18,7 @@
 #'
 #' See [mixed_react_tree()] for details on the shown input and return values.
 #' See [module2app_bare()] for the values exported for tests,
+#' for changing reactive `server_args` while the app runs,
 #' and for a testbed without these displays.
 #'
 #' If you are testing screenshots,
@@ -31,6 +32,8 @@
 #' Additional arguments passed to `module_server`and `module_ui`.
 #' `server_args` can be [shiny::reactive()]s,
 #' if corresponding argument in `module_server` accepts it.
+#' Named reactive `server_args` can change while the app runs
+#' (see [module2app_bare()]).
 #' @inheritParams shiny::shinyApp
 #' @inheritDotParams shiny::shinyApp
 #' @family modules
@@ -112,13 +115,12 @@ inner_module_id <- "crow-module2app-module-ui"
 #' @describeIn module2app Server
 #' @export
 module2app_server <- function(module_server = NULL, server_args = list()) {
-  bare_server <- module2app_bare_server(module_server, server_args)
-  function(input, output, session) {
-    mixed_react_tree_server(id = "inputs", tree = server_args)
-    res <- bare_server(input, output, session)
-    mixed_react_tree_server(id = "returns", tree = res)
-    res
-  }
+  testbed_server(module_server, server_args, display = display_trees)
+}
+
+display_trees <- function(server_args, returns) {
+  mixed_react_tree_server(id = "inputs", tree = server_args)
+  mixed_react_tree_server(id = "returns", tree = returns)
 }
 
 # module2app_bare helper ====
@@ -147,6 +149,38 @@ module2app_server <- function(module_server = NULL, server_args = list()) {
 #' It evaluates the trees only when they are requested.
 #' Its reactive graph is thus the same as that of an app
 #' which only uses the module.
+#'
+#' @section Changing server arguments while the app runs:
+#' Both testbeds read the hidden input `crow_server_args`,
+#' a JSON object keyed by server argument name.
+#' Its values replace the values of these arguments,
+#' for all sessions of the app.
+#' A `null` restores the value passed at start.
+#' The module receives each named reactive in `server_args`
+#' wrapped in a [shiny::reactive()],
+#' so it cannot set the original [shiny::reactiveVal()].
+#' Other server arguments are fixed at start.
+#' The displayed and exported `server_args` show the current values.
+#'
+#' From R, through [`shinytest2::AppDriver`] (see [local_app_driver()]):
+#' ```r
+#' driver$set_inputs(
+#'   crow_server_args = list(increment_by = 5),
+#'   allow_no_input_binding_ = TRUE
+#' )
+#' ```
+#' From the browser console:
+#' ```js
+#' Shiny.setInputValue("crow_server_args", {increment_by: 5})
+#' ```
+#' JSON numbers arrive as doubles.
+#' The input accepts only JSON, never R code,
+#' because the app does not check the origin of websocket connections:
+#' any web page open in the same browser can send this input.
+#'
+#' Changing an unknown or a non-reactive argument changes nothing.
+#' The error goes to the app's standard error and a notification,
+#' because an error would end the session.
 #'
 #' @inheritParams module2app
 #' @inheritParams module2app_ui
@@ -186,8 +220,23 @@ module2app_bare_server <- function(
   module_server = NULL,
   server_args = list()
 ) {
+  testbed_server(module_server, server_args)
+}
+
+testbed_server <- function(
+  module_server,
+  server_args,
+  display = function(server_args, returns) NULL
+) {
   checkmate::assert_function(module_server, args = c("id"), null.ok = TRUE)
   checkmate::assert_list(server_args)
+  # created outside the server function, so all sessions share them
+  overrides <- purrr::map(reactive_args(server_args), \(x) shiny::reactiveVal())
+  server_args[names(overrides)] <- purrr::map2(
+    server_args[names(overrides)],
+    overrides,
+    overridable
+  )
   if (is.null(module_server)) {
     module_server <- no_fun_provided_server
   } else {
@@ -195,15 +244,75 @@ module2app_bare_server <- function(
     module_server <- purrr::partial(module_server, !!!server_args)
   }
   function(input, output, session) {
+    shiny::observeEvent(
+      input$crow_server_args,
+      set_overrides(overrides, input$crow_server_args)
+    )
     res <- module_server(id = "test_object")
     shiny::exportTestValues(
       res = fix_test_returns(res),
       server_args = tree_text(server_args),
       returns = tree_text(res)
     )
+    display(server_args, res)
     res
   }
 }
+
+reactive_args <- function(server_args) {
+  purrr::keep(server_args[rlang::names2(server_args) != ""], shiny::is.reactive)
+}
+
+overridable <- function(original, override) {
+  shiny::reactive(if (is.null(override())) original() else override())
+}
+
+#' Errors would end the session,
+#' so they only go to stderr and a notification.
+#' @noRd
+set_overrides <- function(overrides, values) {
+  tryCatch(
+    {
+      check_overridable(values, names(overrides))
+      purrr::iwalk(values, \(value, name) overrides[[name]](value))
+    },
+    error = function(cnd) {
+      message(rlang::cnd_message(cnd, prefix = TRUE))
+      shiny::showNotification(conditionMessage(cnd), type = "error")
+    }
+  )
+}
+
+check_overridable <- function(values, overridable) {
+  if (!is.list(values) || !rlang::is_named(values)) {
+    rlang::abort(
+      "`crow_server_args` must be a JSON object keyed by server argument name.",
+      call = NULL
+    )
+  }
+  rejected <- setdiff(names(values), overridable)
+  if (length(rejected) > 0) {
+    rlang::abort(
+      c(
+        paste(
+          ngettext(
+            length(rejected),
+            "Cannot change server argument",
+            "Cannot change server arguments"
+          ),
+          backticks(rejected)
+        ),
+        i = paste(
+          "Only reactive arguments passed in `server_args` can change:",
+          if (length(overridable) > 0) backticks(overridable) else "none."
+        )
+      ),
+      call = NULL
+    )
+  }
+}
+
+backticks <- function(x) paste0("`", x, "`", collapse = ", ")
 
 #' Need to protect against non-reactive values
 #' @noRd
