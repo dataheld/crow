@@ -7,6 +7,9 @@ Run commands inside its dev shell:
 `nk` lists the project's workflows;
 `nk <name> [args]` runs one.
 Agents can also use them as MCP tools, from `.mcp.json`.
+Both run in the working tree;
+under `process-compose up`, tasks that rerun on changes may run in a copy,
+named in their logs.
 
 Check your work locally, from fastest to strictest:
 

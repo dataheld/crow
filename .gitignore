@@ -20,6 +20,7 @@ result-*
 /.nullkomma/cloudflare/
 /.nullkomma/gcroots/
 .playwright-mcp/
+/.Rprofile
 /.agents/skills/nk-audit-output
 /.agents/skills/nk-resolve-file-conflicts
 /.agents/skills/nk-upgrade
