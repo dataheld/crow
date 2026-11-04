@@ -309,7 +309,10 @@ module2app_bare_server <- function(
 #' ```js
 #' Shiny.setInputValue("crow_server_args", {increment_by: 5})
 #' ```
-#' JSON numbers arrive as doubles.
+#' Values can be any JSON value,
+#' which shiny converts with `jsonlite::fromJSON(simplifyVector = FALSE)`:
+#' e.g. `5` becomes `5L`, `2.5` a double, `true` `TRUE`,
+#' and arrays and objects become lists.
 #' The input accepts only JSON, never R code,
 #' because the app does not check the origin of websocket connections:
 #' any web page open in the same browser can send this input.
