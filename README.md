@@ -36,6 +36,14 @@ Config/Needs/website: dataheld/crow
 
 ## Coding agents
 
-This repository is also an [Agent Plugin](https://agent-plugins.org).
-Its `add-shiny-module` skill teaches agents to build, test and document modules with crow,
-for example after `/plugin install https://github.com/dataheld/crow` in Copilot.
+crow ships an [Agent Plugin](https://agent-plugins.org) in its installed package directory.
+Its `add-shiny-module` skill teaches agents to build, test and document modules with crow.
+Install the plugin from there,
+for example in Copilot CLI:
+
+```sh
+copilot plugin install "$(Rscript -e 'cat(system.file(package = "crow"))')"
+```
+
+The plugin must match the installed crow version:
+reinstall it after you upgrade crow.

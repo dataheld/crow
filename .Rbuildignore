@@ -11,8 +11,6 @@ _\.new\.png$
 cache/
 ^UPSTREAM[.]md$
 ^vignettes/articles$
-^plugin[.]json$
-^skills$
 
 # nullkomma:r:start
 [.]nix$
