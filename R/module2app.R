@@ -357,6 +357,7 @@ module2app_bare_server <- function(
 #' @inheritDotParams shiny::shinyApp
 #' @family modules
 #' @family shinytest2
+#' @family agentic coding
 #' @export
 module2app_bare <- new_testbed(
   module2app_bare_ui,

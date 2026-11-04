@@ -59,7 +59,7 @@
 #'   session_tools = FALSE
 #' )
 #' }
-#' @family modules
+#' @family agentic coding
 #' @export
 crow_tools <- function() {
   rlang::check_installed(c("ellmer", "callr", "pkgload", "jsonlite", "withr"))
