@@ -567,7 +567,7 @@ counter_button_server <- function(
   shiny::moduleServer(
     id,
     function(input, output, session) {
-      count <- shiny::reactiveVal(set_to)
+      count <- shiny::reactiveVal(set_to, label = "count")
       shiny::observeEvent(input$button, {
         count(count() + increment_by())
       })
