@@ -48,9 +48,12 @@ shiny::reactlogShow()
 
 The testbed displays its inputs and return values,
 which adds reactive nodes to the graph.
-Your module's own nodes are in the `test_object` namespace;
-the testbed's displays are in the `inputs` and `returns` namespaces.
+Inputs and outputs carry their module ID as a prefix:
+`test_object-` for your module,
+`inputs-` and `returns-` for the testbed's displays.
+Other nodes are labelled by their code,
+or by their `label` argument, if you give one.
 To focus on your module,
 search for `test_object` in the reactlog;
-it then shows the matching nodes and their family trees.
+it then shows the matching inputs and outputs and their family trees.
 See also the section "Changes to the Reactive Graph" in `?module2app`.
