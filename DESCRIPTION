@@ -50,6 +50,6 @@ Remotes:
     dataheld/elf
 Config/testthat/edition: 3
 Config/testthat/parallel: true
-Config/Needs/website: rmarkdown
+Config/Needs/website: reactlog, rmarkdown
 Config/Needs/development: devtools, servr, usethis
 RoxygenNote: 7.3.3
