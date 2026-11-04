@@ -206,6 +206,9 @@ roxy_tag_rd.roxy_tag_crowInsertSnaps <- function(x, base_path, env) {
   if (length(args) >= 2) {
     args[[3]] <- as.logical(args[[3]])
   }
+  if (length(args) == 5) {
+    args[[5]] <- as.numeric(args[[5]])
+  }
   possible_names <- c("test_file", "name", "auto_numbered", "variant", "fps")
   # this is fine because the order of arguments for tags is always the same
   names(args) <- possible_names[seq_along(args)]
