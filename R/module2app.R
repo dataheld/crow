@@ -74,6 +74,12 @@ mount_server <- function(
   }
 }
 
+session_reactlog <- function(log, session) {
+  purrr::keep(log, \(event) {
+    is.null(event$session) || identical(event$session, session)
+  })
+}
+
 reactive_args <- function(server_args) {
   purrr::keep(server_args[rlang::names2(server_args) != ""], shiny::is.reactive)
 }
@@ -290,10 +296,11 @@ module2app_bare_server <- function(
 #'   each a list of the `unevaluated` and `evaluated` tree,
 #'   as text identical to the display of [module2app()]
 #'   (see [mixed_react_tree()]).
-#' - `reactlog`: the events of [shiny::reactlog()] for this session,
-#'   for [reactlog_graph()].
+#' - `reactlog`: the raw events of [shiny::reactlog()] for this session,
+#'   because tests and agents cannot call it in the app's process.
 #'   Empty, unless the app runs with `options(shiny.reactlog = TRUE)`,
 #'   such as from `local_app_driver(options = list(shiny.reactlog = TRUE))`.
+#'   The testbed's own reactives are labelled `crow_*`.
 #'
 #' [module2app()] displays the evaluated trees as outputs,
 #' which depend on, and thus change, the module's reactive graph
@@ -403,11 +410,6 @@ no_fun_provided_glue <- function(x) glue::glue("No {x} function provided.")
 #' For example,
 #' these reactives might be invalidated at a different time in your use
 #' of your modules outside of this testbed.
-#' [reactlog_graph()] drops the testbed's own nodes, including this display,
-#' but keeps the dependencies the display causes:
-#' returned reactives which the display reads depend on their sources,
-#' even if nothing else reads them.
-#' [module2app_bare()] does not have this display.
 #'
 #' @section Bugs:
 #' The display currently includes workarounds for these (likely upstream) bugs:
@@ -598,7 +600,7 @@ counter_button_server <- function(
   shiny::moduleServer(
     id,
     function(input, output, session) {
-      count <- shiny::reactiveVal(set_to, label = "count")
+      count <- shiny::reactiveVal(set_to)
       shiny::observeEvent(input$button, {
         count(count() + increment_by())
       })
