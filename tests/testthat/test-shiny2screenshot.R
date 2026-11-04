@@ -24,11 +24,7 @@ test_that("get_screenshot_from_app can record a screenshot", {
   # because they're in this package and don't change
   # upstream change from shiny examples could break screenshots
   path <- withr::local_tempfile(fileext = ".png")
-  get_screenshot_from_app(
-    counter_button_app,
-    screenshot_args = get_screenshot_args_attr(counter_button_app()),
-    file = path
-  )
+  get_screenshot_from_app(counter_button_app, file = path)
   expect_snapshot_file(path, name = "counter.png", variant = variant)
 })
 

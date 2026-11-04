@@ -31,7 +31,7 @@
 #' @return A function without arguments.
 #' @examples
 #' \dontrun{
-#' shinytest2::AppDriver$new(
+#' local_app_driver(
 #'   shinytest2_app_fn(module2app(counter_button_ui))
 #' )
 #' }
