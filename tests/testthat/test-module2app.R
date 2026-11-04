@@ -67,6 +67,25 @@ test_that("works with arguments to ui and server", {
     capture.output(print(102))
   )
 })
+test_that("shows module inputs, UI and returns in screenshots", {
+  purrr::walk(
+    glue::glue("double-counter-00{1:4}.png"),
+    testthat::announce_snapshot_file
+  )
+  # linux screenshots are the canonical source for the docs
+  skip_on_os(c("windows", "mac", "solaris"))
+  driver <- local_app_driver(
+    shinytest2_app_fn(source_pef("module2app", "simple", "args")),
+    screenshot_args = list(selector = ".container-fluid", expand = 15),
+    name = "double-counter",
+    variant = "linux"
+  )
+  driver$expect_screenshot()
+  purrr::walk(1:3, function(click) {
+    driver$click("test_object-button")
+    driver$expect_screenshot()
+  })
+})
 test_that("works with only server args", {
   driver <- local_app_driver(shinytest2_app_fn(
     module2app(server_args = list(c(1, 2)))
@@ -161,6 +180,24 @@ describe("module2app_bare", {
         expect_equal(res(), 11L)
       }
     )
+  })
+  it("exports the reactlog events of its session", {
+    driver <- local_app_driver(
+      counter_button_app,
+      options = list(shiny.reactlog = TRUE)
+    )
+    driver$click(selector = "#test_object-button")
+    log <- driver$get_value(export = "reactlog")
+    labels <- purrr::map_chr(
+      purrr::keep(log, \(e) e$action == "define"),
+      "label"
+    )
+    expect_contains(labels, c("input$test_object-button", "crow_server_args"))
+    expect_length(unique(unlist(purrr::map(log, "session"))), 1)
+  })
+  it("exports no reactlog events without logging", {
+    driver <- local_app_driver(counter_button_app)
+    expect_equal(driver$get_value(export = "reactlog"), list())
   })
   it("exports the trees of server arguments and return values", {
     driver <- local_app_driver(shinytest2_app_fn(
