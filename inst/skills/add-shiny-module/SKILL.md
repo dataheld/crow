@@ -107,12 +107,12 @@ If the crow MCP tools are available,
 use them to run the module of the working tree,
 lightest first:
 
-| Question | Tool |
-|---|---|
-| Server logic, reactive arguments, return values, outputs as values | `module_test_server` |
-| Which reactives depend on which | `module_test_server` with `reactive_graph` |
-| Rendered HTML, JavaScript, layout | `module_app_start`, then `module_app_set` and `module_app_get` |
-| How the module looks | `module_app_screenshot` on a running app |
+| Question                                                           | Tool                                                           |
+| ------------------------------------------------------------------ | -------------------------------------------------------------- |
+| Server logic, reactive arguments, return values, outputs as values | `module_test_server`                                           |
+| Which reactives depend on which                                    | `module_test_server` with `reactive_graph`                     |
+| Rendered HTML, JavaScript, layout                                  | `module_app_start`, then `module_app_set` and `module_app_get` |
+| How the module looks                                               | `module_app_screenshot` on a running app                       |
 
 - `module_test_server` runs `shiny::testServer()` without a browser,
   in a few seconds,

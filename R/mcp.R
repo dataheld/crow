@@ -67,7 +67,9 @@ crow_tools <- function() {
     "Absolute path to the R package root, which contains `DESCRIPTION`.",
     "Its working tree is loaded."
   ))
-  r_code <- function(description) ellmer::type_string(description, required = FALSE)
+  r_code <- function(description) {
+    ellmer::type_string(description, required = FALSE)
+  }
   server <- r_code(
     "R code giving the module server function, e.g. `counter_button_server`."
   )
@@ -215,8 +217,12 @@ check_plugin_version <- function(plugin_root) {
   if (!identical(plugin, installed)) {
     rlang::abort(c(
       paste0(
-        "The crow agent plugin (", plugin, ") ",
-        "does not match the installed crow (", installed, ")."
+        "The crow agent plugin (",
+        plugin,
+        ") ",
+        "does not match the installed crow (",
+        installed,
+        ")."
       ),
       i = "Install the plugin again from `system.file(package = \"crow\")`."
     ))
@@ -239,11 +245,12 @@ module_test_server <- function(
   on.exit(unlink(log))
   sections <- tryCatch(
     callr::r(
-      \(...) {
-        pkgload::load_all(quiet = TRUE)
-        crow:::test_server_sections(...)
-      },
-      args = list(server, server_args, expr, reactive_graph),
+      child_call,
+      args = list(
+        "test_server_sections",
+        list(server, server_args, expr, reactive_graph),
+        path
+      ),
       wd = path,
       stdout = log,
       stderr = "2>&1",
@@ -264,20 +271,21 @@ test_server_sections <- function(server, server_args, expr, reactive_graph) {
   options(shiny.reactlog = reactive_graph)
   sections <- list()
   conditions <- character()
+  record <- function(value, env) {
+    session <- get("session", envir = env)
+    sections[["Value of `expr`"]] <<- print_text(value)
+    sections <<- c(sections, testbed_sections(session$userData))
+    if (reactive_graph) {
+      sections[["Reactive graph"]] <<- format(
+        reactlog_graph(session = session$token)
+      )
+    }
+  }
   tryCatch(
     withCallingHandlers(
       rlang::inject(shiny::testServer(
         module2app_bare_server(server, server_args),
-        {
-          value <- !!expr
-          sections[["Value of `expr`"]] <<- print_text(value)
-          sections <<- c(sections, testbed_sections(session$userData))
-          if (reactive_graph) {
-            sections[["Reactive graph"]] <<- format(
-              reactlog_graph(session = session$token)
-            )
-          }
-        }
+        record(!!expr, environment())
       )),
       message = \(cnd) {
         conditions[[length(conditions) + 1]] <<- conditionMessage(cnd)
@@ -288,7 +296,9 @@ test_server_sections <- function(server, server_args, expr, reactive_graph) {
         invokeRestart("muffleWarning")
       }
     ),
-    error = \(cnd) sections[["Error"]] <<- conditionMessage(cnd)
+    error = \(cnd) {
+      sections[["Error"]] <<- conditionMessage(cnd)
+    }
   )
   c(sections, list(`Messages and warnings` = conditions))
 }
@@ -336,15 +346,7 @@ module_app_start <- function(
     callr::r_session_options(supervise = TRUE, stdout = log, stderr = log)
   )
   sections <- tryCatch(
-    app_run(
-      id,
-      \(path, app) {
-        setwd(path)
-        pkgload::load_all(quiet = TRUE)
-        crow:::app_start_child(app)
-      },
-      list(path, app)
-    ),
+    app_run(id, "app_start_child", list(app), path = path),
     error = \(cnd) list(Error = conditionMessage(cnd))
   )
   log <- read_log(log)
@@ -362,45 +364,48 @@ read_log <- function(path) {
 module_app_set <- function(id, inputs = "{}", server_args = "{}") {
   agent_report(app_run(
     id,
-    \(inputs, server_args) crow:::app_set_child(inputs, server_args),
+    "app_set_child",
     list(jsonlite::fromJSON(inputs), jsonlite::fromJSON(server_args))
   ))
 }
 
 module_app_get <- function(id, reactive_graph = FALSE) {
-  agent_report(app_run(
-    id,
-    \(reactive_graph) crow:::app_sections(TRUE, reactive_graph),
-    list(reactive_graph)
-  ))
+  agent_report(app_run(id, "app_sections", list(TRUE, reactive_graph)))
 }
 
 module_app_screenshot <- function(id) {
-  file <- file.path(tempdir(), paste0("crow-", id, "-", Sys.time() |> as.numeric(), ".png"))
-  agent_report(app_run(
-    id,
-    \(file) crow:::app_screenshot_child(file),
-    list(file)
-  ))
+  file <- file.path(
+    tempdir(),
+    paste0("crow-", id, "-", Sys.time() |> as.numeric(), ".png")
+  )
+  agent_report(app_run(id, "app_screenshot_child", list(file)))
 }
 
 module_app_stop <- function(id) {
-  sections <- app_run(id, \() crow:::app_stop_child())
+  sections <- app_run(id, "app_stop_child")
   app_close(id)
   agent_report(c(list(App = paste("Stopped", id)), sections))
 }
 
-app_run <- function(id, fun, args = list(), timeout = 120) {
+app_run <- function(id, fun, args = list(), path = NULL, timeout = 120) {
   session <- the$apps[[id]]
   if (is.null(session)) {
     rlang::abort(paste0(
-      "No running app with ID `", id, "`. Start one with module_app_start."
+      "No running app with ID `",
+      id,
+      "`. Start one with module_app_start."
     ))
   }
-  session$call(fun, args)
+  session$call(child_call, list(fun, args, path))
   if (session$poll_process(timeout * 1000) == "timeout") {
     app_close(id)
-    rlang::abort(paste0("App `", id, "` did not answer within ", timeout, "s and was stopped."))
+    rlang::abort(paste0(
+      "App `",
+      id,
+      "` did not answer within ",
+      timeout,
+      "s and was stopped."
+    ))
   }
   res <- session$read()
   if (!is.null(res$error)) {
@@ -415,6 +420,18 @@ app_close <- function(id) {
     session$close()
   }
   the$apps[[id]] <- NULL
+}
+
+#' Calls a crow function in a child R process.
+#' Looks it up only after loading the package at `path`,
+#' so that developing crow itself runs its working tree.
+#' @noRd
+child_call <- function(fun, args, path = NULL) {
+  if (!is.null(path)) {
+    setwd(path)
+    pkgload::load_all(quiet = TRUE)
+  }
+  do.call(utils::getFromNamespace(fun, "crow"), args, quote = TRUE)
 }
 
 # These run in the R process of the app, at the package root.
@@ -462,7 +479,11 @@ app_stop_child <- function() {
   list(Log = new_log_lines())
 }
 
-app_sections <- function(outputs = FALSE, reactive_graph = FALSE, trees = TRUE) {
+app_sections <- function(
+  outputs = FALSE,
+  reactive_graph = FALSE,
+  trees = TRUE
+) {
   driver <- crow_app()$driver
   sections <- list()
   if (trees) {
@@ -475,7 +496,9 @@ app_sections <- function(outputs = FALSE, reactive_graph = FALSE, trees = TRUE) 
     values <- driver$get_values(input = FALSE, output = TRUE, export = FALSE)
     values <- values$output[startsWith(names(values$output), "test_object-")]
     sections[["Module outputs"]] <- paste0(
-      "output$`", names(values), "`: ",
+      "output$`",
+      names(values),
+      "`: ",
       purrr::map_chr(values, \(x) print_text(x))
     )
   }
@@ -520,7 +543,9 @@ agent_report <- function(sections, log = character()) {
     return("Nothing to report.")
   }
   paste0(
-    "## ", names(sections), "\n",
+    "## ",
+    names(sections),
+    "\n",
     purrr::map_chr(sections, \(x) paste(x, collapse = "\n")),
     collapse = "\n\n"
   )

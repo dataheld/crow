@@ -4,7 +4,10 @@
     "crow": {
       "type": "stdio",
       "command": "Rscript",
-      "args": ["-e", "crow::crow_mcp_server('${PLUGIN_ROOT}')"]
+      "args": [
+        "-e",
+        "crow::crow_mcp_server('${PLUGIN_ROOT}')"
+      ]
     }
   }
 }

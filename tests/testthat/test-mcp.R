@@ -109,7 +109,9 @@ test_that("module_test_server() reports errors first", {
 
 test_that("module_test_server() runs the working tree of the package", {
   path <- local_module_pkg("before")
-  run <- function() tool("module_test_server")(path = path, server = "mod_server")
+  run <- function() {
+    tool("module_test_server")(path = path, server = "mod_server")
+  }
   expect_match(run(), "[1] \"before\"", fixed = TRUE)
   write_module(path, "after")
   expect_match(run(), "[1] \"after\"", fixed = TRUE)
