@@ -14,3 +14,7 @@ reference:
     desc: Helpers around working with shiny modules.
   - contents:
       - has_concept("modules")
+  - title: Testing with shinytest2
+    desc: Helpers to drive shiny apps and modules in shinytest2 tests.
+  - contents:
+      - has_concept("shinytest2")
