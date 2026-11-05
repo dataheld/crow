@@ -143,7 +143,10 @@ test_that("works with bs5", {
     )
   )
 })
-correct_attr <- list(selector = paste0("#", inner_module_id, " > *"))
+correct_attr <- list(
+  selector = paste0("#", inner_module_id, " > *"),
+  region = "border"
+)
 test_that("returns attribute with dom selector", {
   expect_equal(
     attr(module2app(counter_button_ui), "crow_screenshot_args"),
@@ -214,6 +217,25 @@ describe("module2app_bare", {
     returns <- driver$get_value(export = "returns")
     expect_snapshot(cat(returns$unevaluated))
     expect_snapshot(cat(returns$evaluated))
+  })
+  it("screenshots the module with its padding and border", {
+    path <- withr::local_tempfile(fileext = ".png")
+    driver <- local_app_driver(shinytest2_app_fn(module2app_bare(
+      function(id) {
+        shiny::div(
+          id = id,
+          style = "width: 100px; height: 50px; padding: 10px; border: 5px solid"
+        )
+      }
+    )))
+    driver$get_screenshot(file = path)
+    expect_equal(
+      unlist(magick::image_info(magick::image_read(path))[c(
+        "width",
+        "height"
+      )]),
+      c(width = 100, height = 50)
+    )
   })
   it("screenshots the same module as module2app", {
     screenshot_info <- function(app) {

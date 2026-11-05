@@ -90,7 +90,7 @@ crow_tools <- function() {
   id <- ellmer::type_string("ID of the running app, from module_app_start.")
   tools <- list(
     ellmer::tool(
-      module_test_server,
+      reporting(module_test_server),
       name = "module_test_server",
       description = paste(
         "Run shiny::testServer() on a module server, in a new R process,",
@@ -119,7 +119,7 @@ crow_tools <- function() {
       )
     ),
     ellmer::tool(
-      module_app_start,
+      reporting(module_app_start),
       name = "module_app_start",
       description = paste(
         "Start a module in a bare test app, driven by shinytest2 in Chrome",
@@ -149,7 +149,7 @@ crow_tools <- function() {
       )
     ),
     ellmer::tool(
-      module_app_set,
+      reporting(module_app_set),
       name = "module_app_set",
       description = paste(
         "Change a running module app, then wait until it is idle.",
@@ -175,7 +175,7 @@ crow_tools <- function() {
       )
     ),
     ellmer::tool(
-      module_app_get,
+      reporting(module_app_get),
       name = "module_app_get",
       description = paste(
         "Report a running module app: trees of server arguments and",
@@ -184,7 +184,7 @@ crow_tools <- function() {
       arguments = list(id = id, reactlog = reactlog)
     ),
     ellmer::tool(
-      module_app_screenshot,
+      reporting(module_app_screenshot),
       name = "module_app_screenshot",
       description = paste(
         "Screenshot the module UI of a running app, without anything",
@@ -193,7 +193,7 @@ crow_tools <- function() {
       arguments = list(id = id)
     ),
     ellmer::tool(
-      module_app_stop,
+      reporting(module_app_stop),
       name = "module_app_stop",
       description = "Stop a running module app and report its last logs.",
       arguments = list(id = id)
@@ -214,6 +214,22 @@ crow_mcp_server <- function(plugin_root = NULL) {
   }
   reg.finalizer(the, \(e) purrr::walk(names(e$apps), app_close), onexit = TRUE)
   mcptools::mcp_server(tools = crow_tools(), session_tools = FALSE)
+}
+
+#' Returns errors as reports,
+#' because mcptools turns them into protocol errors,
+#' which clients may not show to the agent.
+#' @noRd
+reporting <- function(fun) {
+  call <- rlang::call2(fun, !!!rlang::fn_fmls_syms(fun))
+  rlang::new_function(
+    rlang::fn_fmls(fun),
+    rlang::expr(tryCatch(!!call, error = report_error))
+  )
+}
+
+report_error <- function(cnd) {
+  agent_report(list(Error = conditionMessage(cnd)))
 }
 
 check_plugin_version <- function(plugin_root) {

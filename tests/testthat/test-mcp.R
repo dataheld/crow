@@ -157,7 +157,15 @@ test_that("module apps start, change, report, screenshot and stop", {
   stop <- tool("module_app_stop")(id)
   expect_match(stop, "Stopped app", fixed = TRUE)
   expect_false(id %in% names(the$apps))
-  expect_error(tool("module_app_get")(id), "No running app")
+  expect_match(tool("module_app_get")(id), "^## Error\nNo running app")
+})
+
+test_that("module app tools report wrong calls as errors", {
+  expect_match(
+    tool("module_app_set")("app0", inputs = "{not json"),
+    "^## Error\n"
+  )
+  expect_match(tool("module_app_stop")("app0"), "^## Error\nNo running app")
 })
 
 test_that("module apps run apart", {

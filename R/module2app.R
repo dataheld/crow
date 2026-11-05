@@ -25,7 +25,10 @@ new_testbed <- function(testbed_ui, testbed_server) {
           # need to select down to child
           # because only that actually has a height
           # the parent div may not, and will then fail the screenshot
-          selector = paste0("#", inner_module_id, " > *")
+          selector = paste0("#", inner_module_id, " > *"),
+          # chromote crops to the content box by default,
+          # cutting off padding and borders
+          region = "border"
         )
       )
     )
