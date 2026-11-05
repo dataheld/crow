@@ -105,6 +105,32 @@ as in the scaffold.
 Document every argument; inherit with `@inheritParams` where possible.
 Use `shiny::` prefixes; do not `@import shiny`.
 
+### Try it while you write it
+
+If the crow MCP tools are available,
+use them to run the module of the working tree,
+lightest first:
+
+| Question                                                           | Tool                                                           |
+| ------------------------------------------------------------------ | -------------------------------------------------------------- |
+| Server logic, reactive arguments, return values, outputs as values | `module_test_server`                                           |
+| Which reactives depend on which                                    | `module_test_server` with `reactlog`                           |
+| Rendered HTML, JavaScript, layout                                  | `module_app_start`, then `module_app_set` and `module_app_get` |
+| How the module looks                                               | `module_app_screenshot` on a running app                       |
+
+- `module_test_server` runs `shiny::testServer()` without a browser,
+  in a few seconds,
+  and loads the package anew on every call.
+- `module_app_start` runs Chrome and takes about ten seconds.
+  The app keeps the code it started with:
+  after editing the package, stop it with `module_app_stop` and start it again.
+  Stop every app you start.
+- Both report the server arguments and return values
+  as unevaluated and evaluated trees,
+  and the logs, errors first.
+  Read the errors in the logs, too:
+  a module can fail there without failing the tool.
+
 ## 3. Test all server logic
 
 Test `foo_server()` with `shiny::testServer()`,

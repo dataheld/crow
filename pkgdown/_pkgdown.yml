@@ -18,3 +18,7 @@ reference:
     desc: Helpers to drive shiny apps and modules in shinytest2 tests.
   - contents:
       - has_concept("shinytest2")
+  - title: Agentic coding
+    desc: Tools for coding agents to run and inspect shiny modules.
+  - contents:
+      - has_concept("agentic coding")

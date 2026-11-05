@@ -25,7 +25,10 @@ new_testbed <- function(testbed_ui, testbed_server) {
           # need to select down to child
           # because only that actually has a height
           # the parent div may not, and will then fail the screenshot
-          selector = paste0("#", inner_module_id, " > *")
+          selector = paste0("#", inner_module_id, " > *"),
+          # chromote crops to the content box by default,
+          # cutting off padding and borders
+          region = "border"
         )
       )
     )
@@ -63,6 +66,12 @@ mount_server <- function(
       label = "crow_server_args"
     )
     res <- module_server(id = "test_object")
+    # exportTestValues() does nothing in shiny::testServer()
+    session$userData$crow_testbed <- list(
+      server_args = server_args,
+      effective_args = effective_args,
+      res = res
+    )
     shiny::exportTestValues(
       res = fix_test_returns(res),
       server_args = tree_text(server_args, effective_args),
@@ -351,6 +360,7 @@ module2app_bare_server <- function(
 #' @inheritDotParams shiny::shinyApp
 #' @family modules
 #' @family shinytest2
+#' @family agentic coding
 #' @export
 module2app_bare <- new_testbed(
   module2app_bare_ui,
