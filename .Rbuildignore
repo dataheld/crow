@@ -13,21 +13,10 @@ cache/
 ^vignettes/articles$
 
 # nullkomma:r:start
+^[.](?!aspell(/|$)|Rinstignore$)
 [.]nix$
 ^flake[.]lock$
-^[.]agents$
 ^AGENTS[.]md$
-^[.]envrc$
-^[.]Renviron$
-^[.]Rprofile$
-^[.]R$
-^[.]direnv$
-^[.]git$
-^[.]github$
-^[.]vscode$
-^[.]nvim[.]lua$
-^[.]mcp[.]json$
-^[.]nullkomma$
 ^result(-.*)?$
 ^docs$
 ^pkgdown$
