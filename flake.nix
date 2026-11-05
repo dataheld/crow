@@ -36,7 +36,7 @@
         nullkomma.r.hashes.rdtools = "sha256-8BQ/3Vdl1vndn4BNdoHfjo4TP4ioBWv3Y1bZu22ej70=";
 
         perSystem =
-          { config, system, ... }:
+          { config, ... }:
           let
             testEnvironment = {
               SHINYTEST2_LOAD_TIMEOUT = "16000";
@@ -47,20 +47,6 @@
             };
           in
           {
-            # shortcut: single-app launcher fails SC2043; remove after upgrading
-            # to the published fix for dataheld/nullkomma#316.
-            _module.args.pkgs = inputs.nixpkgs.legacyPackages.${system}.extend (
-              _: prev: {
-                writeShellApplication =
-                  args:
-                  prev.writeShellApplication (
-                    args
-                    // lib.optionalAttrs (args.name == "r-shiny-browser") {
-                      excludeShellChecks = (args.excludeShellChecks or [ ]) ++ [ "SC2043" ];
-                    }
-                  );
-              }
-            );
             # Serves the working tree's MCP tools to agents in this repository.
             nullkomma.agents.mcpServers.crow = {
               type = "stdio";
