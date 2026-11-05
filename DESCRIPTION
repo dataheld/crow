@@ -46,6 +46,8 @@ Suggests:
     jsonlite,
     mcptools,
     pkgload,
+    processx,
+    ps,
     roxygen2,
     shinytest2,
     showimage,

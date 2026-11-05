@@ -1,14 +1,5 @@
 tool <- function(name) crow_tools()[[name]]
 
-pkg_root <- function() {
-  path <- testthat::test_path("..", "..")
-  if (!file.exists(file.path(path, "DESCRIPTION"))) {
-    testthat::skip("Needs the package source.")
-  }
-  normalizePath(path)
-}
-
-app_id <- function(report) regmatches(report, regexpr("app[0-9]+", report))
 
 local_module_pkg <- function(label = "Count", .local_envir = parent.frame()) {
   if (!"crow" %in% rownames(utils::installed.packages())) {
