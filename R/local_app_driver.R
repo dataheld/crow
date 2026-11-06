@@ -38,7 +38,6 @@ local_app_driver <- function(
   ...,
   .local_envir = parent.frame()
 ) {
-  check_installed_shinytest2()
   driver <- shinytest2::AppDriver$new(
     app,
     screenshot_args = screenshot_args,

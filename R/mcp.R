@@ -62,7 +62,6 @@
 #' @family agentic coding
 #' @export
 crow_tools <- function() {
-  rlang::check_installed(c("ellmer", "callr", "pkgload", "jsonlite", "withr"))
   path <- ellmer::type_string(paste(
     "Absolute path to the R package root, which contains `DESCRIPTION`.",
     "Its working tree is loaded."
@@ -208,7 +207,6 @@ crow_tools <- function() {
 #' to check that it belongs to the installed crow version.
 #' @export
 crow_mcp_server <- function(plugin_root = NULL) {
-  rlang::check_installed("mcptools")
   if (!is.null(plugin_root)) {
     check_plugin_version(plugin_root)
   }

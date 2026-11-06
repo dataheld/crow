@@ -74,13 +74,6 @@ check_installed_roxygen2 <- function() {
   )
 }
 
-check_installed_shinytest2 <- function() {
-  rlang::check_installed(
-    "shinytest2",
-    reason = "shinytest2 is needed to create screenshots of shiny apps."
-  )
-}
-
 #' Get screenshot from shiny app
 #'
 #' Wrapper around [local_app_driver()].
