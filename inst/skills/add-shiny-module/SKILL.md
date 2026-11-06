@@ -63,11 +63,12 @@ and its nested parent `x_counter_button`.
   Instead, give `foo_app()` example `server_args`,
   so that `foo_app()` still runs without arguments.
 - Assert the kind of each argument at the top of `foo_server()`,
-  before `shiny::moduleServer()`.
-  If the package imports crow,
-  use `crow::abort_if_reactive()` and `crow::abort_if_not_reactive()`.
-  Otherwise use `stopifnot(shiny::is.reactive(x))`,
-  so that crow stays in `Suggests`.
+  before `shiny::moduleServer()`:
+  `stopifnot(shiny::is.reactive(x))` for a reactive,
+  `stopifnot(!shiny::is.reactive(x))` for a constant.
+  Write these assertions in the package itself:
+  module code must not call crow,
+  which stays in `Suggests`.
   Without the assertion,
   an argument of the wrong kind fails later with a cryptic error,
   e.g. `could not find function "data"`.
