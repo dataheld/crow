@@ -7,11 +7,10 @@ pkg_root <- function() {
 }
 
 app_id <- function(report) {
-  id <- regmatches(report, regexpr("app[0-9]+", report))
-  if (length(id) == 0) {
-    stop("The report has no app ID:\n", report, call. = FALSE)
+  if (startsWith(report, "## Error")) {
+    stop(report, call. = FALSE)
   }
-  id
+  regmatches(report, regexpr("app[0-9]+", report))
 }
 
 local_mcp_client <- function(.local_envir = parent.frame()) {
