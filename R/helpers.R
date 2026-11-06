@@ -1,5 +1,4 @@
 source_pef <- function(...) {
-  rlang::check_installed("elf")
   elf::source_pef(..., package = "crow")
 }
 
@@ -19,10 +18,6 @@ examples_app <- function(example = "01_hello") {
     source(fs::path_package("shiny", "examples-shiny", example, "app.R"))
   )
   res$value
-}
-
-skip_if_load_all2 <- function() {
-  elf::skip_if_pkg_installed_but_not_via_loadall("crow")
 }
 
 skip_example_screenshots <- function() {

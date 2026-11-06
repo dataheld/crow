@@ -74,22 +74,16 @@ check_installed_roxygen2 <- function() {
   )
 }
 
-check_installed_shinytest2 <- function() {
-  rlang::check_installed(
-    "shinytest2",
-    reason = "shinytest2 is needed to create screenshots of shiny apps."
-  )
-}
-
 #' Get screenshot from shiny app
 #'
-#' Wrapper around [shinytest2::AppDriver()].
+#' Wrapper around [local_app_driver()].
 #' Shows only the shiny app at launch.
 #' To show interactions with an app, use a different function.
 #'
-#' @inheritParams shiny::runApp
-#' @param screenshot_args
-#' Passed to [`shinytest2::AppDriver`]'s `$new()` method.
+#' @param appDir
+#' A shiny app, or a function without arguments returning one,
+#' passed to `app` of [local_app_driver()].
+#' @inheritParams local_app_driver
 #' @param name
 #' If the shiny app is developed inside a package (recommended),
 #' the name of that package.
@@ -115,12 +109,13 @@ check_installed_shinytest2 <- function() {
 #' }
 #' @family screenshot
 #' @export
-get_screenshot_from_app <- function(appDir,
-                                    screenshot_args =
-                                      get_screenshot_args_attr(appDir),
-                                    name = character(1L),
-                                    file = NULL,
-                                    strict = FALSE) {
+get_screenshot_from_app <- function(
+  appDir,
+  screenshot_args = app_screenshot_args(appDir),
+  name = character(1L),
+  file = NULL,
+  strict = FALSE
+) {
   checkmate::assert_flag(strict)
   f_screenshot <- purrr::partial(
     get_screenshot_from_app_strictly,
@@ -145,19 +140,19 @@ get_screenshot_from_app <- function(appDir,
   f_screenshot()
 }
 
-get_screenshot_from_app_strictly <- function(appDir,
-                                             screenshot_args,
-                                             name,
-                                             file) {
-  check_installed_shinytest2()
+#' shinytest2 shows screenshots with showimage, but only suggests it.
+#' @importFrom showimage show_image
+#' @noRd
+get_screenshot_from_app_strictly <- function(
+  appDir,
+  screenshot_args,
+  name,
+  file
+) {
   if (name != character(1L)) {
     elf::assert_pkg_installed_but_not_via_loadall(x = name)
   }
-  driver <- shinytest2::AppDriver$new(
-    app_dir = appDir,
-    screenshot_args = screenshot_args
-  )
-  withr::defer(driver$stop())
+  driver <- local_app_driver(appDir, screenshot_args = screenshot_args)
   driver$get_screenshot(file = file)
 }
 
@@ -200,7 +195,12 @@ roxy_tag_parse.roxy_tag_crowInsertSnaps <- function(x) {
 #' @exportS3Method roxygen2::roxy_tag_rd
 roxy_tag_rd.roxy_tag_crowInsertSnaps <- function(x, base_path, env) {
   args <- as.list(x[["val"]])
-  if (length(args) >= 2) args[[3]] <- as.logical(args[[3]])
+  if (length(args) >= 2) {
+    args[[3]] <- as.logical(args[[3]])
+  }
+  if (length(args) == 5) {
+    args[[5]] <- as.numeric(args[[5]])
+  }
   possible_names <- c("test_file", "name", "auto_numbered", "variant", "fps")
   # this is fine because the order of arguments for tags is always the same
   names(args) <- possible_names[seq_along(args)]
@@ -245,12 +245,14 @@ NULL
 #' Save screenshots to `man/figures` and return *relative* path from there.
 #' @inheritParams glue_regexp_snaps
 #' @export
-snaps2fig <- function(test_file = character(),
-                      name = NULL,
-                      auto_numbered = TRUE,
-                      variant = shinytest2::platform_variant(),
-                      fps = 5,
-                      ...) {
+snaps2fig <- function(
+  test_file = character(),
+  name = NULL,
+  auto_numbered = TRUE,
+  variant = shinytest2::platform_variant(),
+  fps = 5,
+  ...
+) {
   snaps_paths <- dir_ls_snaps(
     test_file = test_file,
     regexp = glue_regexp_snaps(
@@ -295,14 +297,16 @@ snaps2md <- function(...) {
 #' @describeIn get_screenshot_from_snaps
 #' Save screenshots to `man/figures` and return R documentation image markup,
 #' to be inserted in R documentation.
-#' For a custom roxygen2 tag with equivalent funcionality,
+#' For a custom roxygen2 tag with equivalent functionality,
 #' see [crowInsertSnaps()].
 #' @export
-snaps2rd <- function(test_file = character(),
-                     name = NULL,
-                     auto_numbered = TRUE,
-                     variant = shinytest2::platform_variant(),
-                     fps = 5) {
+snaps2rd <- function(
+  test_file = character(),
+  name = NULL,
+  auto_numbered = TRUE,
+  variant = shinytest2::platform_variant(),
+  fps = 5
+) {
   path <- snaps2fig(
     test_file = test_file,
     name = name,
@@ -310,7 +314,7 @@ snaps2rd <- function(test_file = character(),
     variant = variant,
     fps = fps
   )
-  # appease make check
+  # appease R CMD check
   path
   glue_latex(
     "name: \\code{[name]}, variant: \\code{[variant]}
@@ -339,9 +343,11 @@ snaps2rd <- function(test_file = character(),
 #' @inheritParams testthat::expect_snapshot_file
 #' @inheritParams fs::dir_ls
 #' @export
-dir_ls_snaps <- function(test_file = character(),
-                         regexp = glue_regexp_snaps(),
-                         variant = shinytest2::platform_variant()) {
+dir_ls_snaps <- function(
+  test_file = character(),
+  regexp = glue_regexp_snaps(),
+  variant = shinytest2::platform_variant()
+) {
   checkmate::assert_string(test_file)
   test_path <- testthat::test_path("_snaps", variant, test_file)
   fs::dir_ls(
@@ -378,7 +384,7 @@ glue_regexp_snaps <- function(name = NULL, auto_numbered = TRUE) {
   checkmate::assert_string(name, null.ok = TRUE)
   checkmate::assert_flag(auto_numbered)
   glue::glue(
-    "^.*[\\\\/]",  # path
+    "^.*[\\\\/]", # path
     if (is.null(name)) "" else "{name}",
     if (!is.null(name) && auto_numbered) "-" else "",
     if (auto_numbered) "\\d{{3}}" else ".*",
@@ -397,9 +403,10 @@ glue_regexp_snaps <- function(name = NULL, auto_numbered = TRUE) {
 #' @return For [image_animate_snaps()] A `magick-image`.
 #' @export
 image_animate_snaps <- function(snaps = fs::path(), fps = 5, ...) {
-  if (any(!fs::file_exists(snaps))) rlang::abort("File could not be found.")
+  if (!all(fs::file_exists(snaps))) {
+    rlang::abort("File could not be found.")
+  }
   names(snaps) <- fs::path_file(snaps)
-  check_installed_magick()
   # stripping helps to avoid spurious diffs
   res <- magick::image_read(snaps, strip = TRUE)
   if (length(snaps) == 1) {
@@ -416,11 +423,4 @@ image_animate_snaps <- function(snaps = fs::path(), fps = 5, ...) {
 #' @export
 image_write_snaps <- function(image, path = withr::local_tempfile()) {
   magick::image_write(image = image, path = path)
-}
-
-check_installed_magick <- function() {
-  rlang::check_installed(
-    "magick",
-    reason = "magick is needed show `snaps`."
-  )
 }

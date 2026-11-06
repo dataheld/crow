@@ -1,20 +1,16 @@
 test_that("works without any inputs", {
   shiny::testServer(module2app_server(), expect_equal(res, NULL))
   expect_snapshot(module2app_ui())
-  skip_if_load_all2()
-  driver <- shinytest2::AppDriver$new(
+  driver <- local_app_driver(shinytest2_app_fn(
     source_pef("module2app", "simple", "no-funs")
-  )
-  withr::defer(driver$stop())
+  ))
   expect_equal(driver$get_value(export = "res"), NULL)
 })
 test_that("works with only UI input", {
   expect_snapshot(module2app_ui(module_ui = counter_button_ui))
-  skip_if_load_all2()
-  driver <- shinytest2::AppDriver$new(
+  driver <- local_app_driver(shinytest2_app_fn(
     source_pef("module2app", "simple", "only-ui")
-  )
-  withr::defer(driver$stop())
+  ))
   driver$expect_text("#test_object-button")
 })
 test_that("works with only server input", {
@@ -22,19 +18,15 @@ test_that("works with only server input", {
     module2app_server(module_server = counter_button_server),
     expect_equal(res(), 0)
   )
-  skip_if_load_all2()
-  driver <- shinytest2::AppDriver$new(
+  driver <- local_app_driver(shinytest2_app_fn(
     source_pef("module2app", "simple", "only-server")
-  )
-  withr::defer(driver$stop())
+  ))
   expect_equal(driver$get_value(export = "res"), 0)
 })
 test_that("works with both inputs", {
-  skip_if_load_all2()
-  driver <- shinytest2::AppDriver$new(
+  driver <- local_app_driver(shinytest2_app_fn(
     source_pef("module2app", "simple", "both-funs")
-  )
-  withr::defer(driver$stop())
+  ))
   expect_equal(
     driver$get_value(output = "returns-eval"),
     capture.output(print(0))
@@ -62,11 +54,9 @@ test_that("works with arguments to ui and server", {
       expect_equal(res(), 15)
     }
   )
-  skip_if_load_all2()
-  driver <- shinytest2::AppDriver$new(
+  driver <- local_app_driver(shinytest2_app_fn(
     source_pef("module2app", "simple", "args")
-  )
-  withr::defer(driver$stop())
+  ))
   expect_equal(
     driver$get_value(output = "returns-eval"),
     capture.output(print(100))
@@ -77,35 +67,50 @@ test_that("works with arguments to ui and server", {
     capture.output(print(102))
   )
 })
+test_that("shows module inputs, UI and returns in screenshots", {
+  purrr::walk(
+    glue::glue("double-counter-00{1:4}.png"),
+    testthat::announce_snapshot_file
+  )
+  # linux screenshots are the canonical source for the docs
+  skip_on_os(c("windows", "mac", "solaris"))
+  driver <- local_app_driver(
+    shinytest2_app_fn(source_pef("module2app", "simple", "args")),
+    screenshot_args = list(selector = ".container-fluid", expand = 15),
+    name = "double-counter",
+    variant = "linux"
+  )
+  driver$expect_screenshot()
+  purrr::walk(1:3, function(click) {
+    driver$click("test_object-button")
+    driver$expect_screenshot()
+  })
+})
 test_that("works with only server args", {
-  skip_if_load_all2()
-  driver <- shinytest2::AppDriver$new(module2app(server_args = list(c(1, 2))))
-  withr::defer(driver$stop())
+  driver <- local_app_driver(shinytest2_app_fn(
+    module2app(server_args = list(c(1, 2)))
+  ))
   expect_equal(
     driver$get_value(output = "inputs-eval"),
     "[[1]]\n[1] 1 2"
   )
 })
 test_that("works with `shiny.tag` returns (workaround)", {
-  skip_if_load_all2()
-  driver <- shinytest2::AppDriver$new(
+  driver <- local_app_driver(shinytest2_app_fn(
     module2app(server_args = list(bar = 1, zap = htmltools::p()))
-  )
-  withr::defer(driver$stop())
+  ))
   expect_snapshot(
     driver$get_value(output = "inputs-eval"),
     transform = purrr::compose(elf::transform_with_generated)
   )
 })
 test_that("works with S3-classed return", {
-  skip_if_load_all2()
   expect_no_condition({
-    driver <- shinytest2::AppDriver$new(
+    local_app_driver(shinytest2_app_fn(
       module2app(
         server_args = list(zap = shiny::reactive(bsicons::bs_icon("heart")))
       )
-    )
-    withr::defer(driver$stop())
+    ))
   })
 })
 test_that("works with nested modules and flat returns", {
@@ -122,11 +127,9 @@ test_that("works with nested modules and flat returns", {
   )
 })
 test_that("works with nested modules and deep returns", {
-  skip_if_load_all2()
-  driver <- shinytest2::AppDriver$new(
+  driver <- local_app_driver(shinytest2_app_fn(
     source_pef("module2app", "nested", "deep")
-  )
-  withr::defer(driver$stop())
+  ))
   driver$expect_text("#returns-eval")
   # changing increment does not work in test,
   # probably because of needed sleep or something
@@ -140,7 +143,10 @@ test_that("works with bs5", {
     )
   )
 })
-correct_attr <- list(selector = paste0("#", inner_module_id, " > *"))
+correct_attr <- list(
+  selector = paste0("#", inner_module_id, " > *"),
+  region = "border"
+)
 test_that("returns attribute with dom selector", {
   expect_equal(
     attr(module2app(counter_button_ui), "crow_screenshot_args"),
@@ -159,4 +165,228 @@ test_that("app without crow args returns missing arg", {
 test_that("absence and presence of crow attrs can be found", {
   expect_true(has_crow_attrs(counter_button_app()))
   expect_false(has_crow_attrs(examples_app()))
+})
+
+describe("module2app_bare", {
+  it("shows only the module UI", {
+    expect_snapshot(module2app_bare_ui(module_ui = counter_button_ui))
+  })
+  it("mounts the module server with arguments", {
+    shiny::testServer(
+      module2app_bare_server(
+        module_server = counter_button_server,
+        server_args = list(set_to = 10L)
+      ),
+      expr = {
+        expect_equal(res(), 10L)
+        session$setInputs(`test_object-button` = 1)
+        expect_equal(res(), 11L)
+      }
+    )
+  })
+  it("exports the reactlog events of its session", {
+    driver <- local_app_driver(
+      counter_button_app,
+      options = list(shiny.reactlog = TRUE)
+    )
+    driver$click(selector = "#test_object-button")
+    log <- driver$get_value(export = "reactlog")
+    labels <- purrr::map_chr(
+      purrr::keep(log, \(e) e$action == "define"),
+      "label"
+    )
+    expect_contains(labels, c("input$test_object-button", "crow_server_args"))
+    expect_length(unique(unlist(purrr::map(log, "session"))), 1)
+  })
+  it("exports no reactlog events without logging", {
+    driver <- local_app_driver(counter_button_app)
+    expect_equal(driver$get_value(export = "reactlog"), list())
+  })
+  it("exports the trees of server arguments and return values", {
+    driver <- local_app_driver(shinytest2_app_fn(
+      module2app_bare(
+        x_counter_button_ui,
+        x_counter_button_server,
+        server_args = list(deep = TRUE)
+      )
+    ))
+    expect_equal(
+      driver$get_value(export = "server_args"),
+      list(unevaluated = "$deep\n[1] TRUE", evaluated = "$deep\n[1] TRUE")
+    )
+    returns <- driver$get_value(export = "returns")
+    expect_snapshot(cat(returns$unevaluated))
+    expect_snapshot(cat(returns$evaluated))
+  })
+  it("screenshots the module with its padding and border", {
+    path <- withr::local_tempfile(fileext = ".png")
+    driver <- local_app_driver(shinytest2_app_fn(module2app_bare(
+      function(id) {
+        shiny::div(
+          id = id,
+          style = "width: 100px; height: 50px; padding: 10px; border: 5px solid"
+        )
+      }
+    )))
+    driver$get_screenshot(file = path)
+    expect_equal(
+      unlist(magick::image_info(magick::image_read(path))[c(
+        "width",
+        "height"
+      )]),
+      c(width = 100, height = 50)
+    )
+  })
+  it("screenshots the same module as module2app", {
+    screenshot_info <- function(app) {
+      path <- withr::local_tempfile(fileext = ".png")
+      local_app_driver(app)$get_screenshot(file = path)
+      magick::image_info(magick::image_read(path))[c("width", "height")]
+    }
+    expect_equal(
+      screenshot_info(shinytest2_app_fn(
+        module2app_bare(counter_button_ui, counter_button_server)
+      )),
+      screenshot_info(counter_button_app)
+    )
+  })
+})
+test_that("module2app exports the trees it displays", {
+  driver <- local_app_driver(shinytest2_app_fn(
+    source_pef("module2app", "nested", "deep")
+  ))
+  returns <- driver$get_value(export = "returns")
+  expect_equal(returns$evaluated, driver$get_value(output = "returns-eval"))
+  expect_equal(returns$unevaluated, driver$get_value(output = "returns-unev"))
+  server_args <- driver$get_value(export = "server_args")
+  expect_equal(server_args$evaluated, driver$get_value(output = "inputs-eval"))
+})
+
+describe("tree_text", {
+  it("prints flat returns", {
+    tree <- shiny::reactive(2L)
+    expect_equal(
+      tree_text(tree),
+      list(
+        unevaluated = paste(capture.output(tree), collapse = "\n"),
+        evaluated = "[1] 2"
+      )
+    )
+  })
+  it("prints deeply nested returns, including reactives of reactives", {
+    shiny::testServer(
+      module2app_bare_server(
+        x_counter_button_server,
+        server_args = list(deep = TRUE)
+      ),
+      expr = {
+        session$setInputs(`test_object-set_count-button` = 1)
+        expect_snapshot(cat(tree_text(res)$evaluated))
+      }
+    )
+  })
+  it("evaluates outside of reactive contexts", {
+    expect_equal(
+      tree_text(list(shiny::reactiveVal(1L)))$evaluated,
+      "[[1]]\n[1] 1"
+    )
+  })
+  it("skips shiny tags", {
+    expect_equal(tree_text(htmltools::p())$evaluated, "character(0)")
+  })
+})
+
+describe("crow_server_args", {
+  it("overrides reactive server arguments", {
+    shiny::testServer(
+      module2app_bare_server(
+        counter_button_server,
+        server_args = list(increment_by = shiny::reactiveVal(1L))
+      ),
+      expr = {
+        session$setInputs(crow_server_args = list(increment_by = 5))
+        session$setInputs(`test_object-button` = 1)
+        expect_equal(res(), 5)
+        session$setInputs(crow_server_args = list(increment_by = NULL))
+        session$setInputs(`test_object-button` = 2)
+        expect_equal(res(), 6)
+      }
+    )
+  })
+  it("rejects unknown and non-reactive arguments", {
+    shiny::testServer(
+      module2app_bare_server(
+        counter_button_server,
+        server_args = list(set_to = 0L, increment_by = shiny::reactiveVal(1L))
+      ),
+      expr = {
+        expect_snapshot(
+          session$setInputs(
+            crow_server_args = list(increment_by = 5, set_to = 3, foo = 1)
+          )
+        )
+        session$setInputs(`test_object-button` = 1)
+        expect_equal(res(), 1L)
+      }
+    )
+  })
+  it("rejects values other than JSON objects", {
+    shiny::testServer(
+      module2app_bare_server(counter_button_server),
+      expect_snapshot(session$setInputs(crow_server_args = 5))
+    )
+  })
+  it("overrides server arguments in a running app", {
+    driver <- local_app_driver(shinytest2_app_fn(
+      source_pef("module2app", "simple", "args")
+    ))
+    driver$set_inputs(
+      crow_server_args = list(increment_by = 5),
+      allow_no_input_binding_ = TRUE
+    )
+    driver$click(selector = "#test_object-button")
+    expect_equal(driver$get_value(export = "res"), 105)
+    expect_equal(
+      driver$get_value(output = "inputs-eval"),
+      "$set_to\n[1] 100\n\n$increment_by\n[1] 5"
+    )
+    expect_equal(
+      driver$get_value(export = "server_args"),
+      list(
+        unevaluated = driver$get_value(output = "inputs-unev"),
+        evaluated = driver$get_value(output = "inputs-eval")
+      )
+    )
+  })
+  it("shows the original reactives in the unevaluated tree", {
+    driver <- local_app_driver(shinytest2_app_fn(
+      source_pef("module2app", "simple", "args")
+    ))
+    driver$set_inputs(
+      crow_server_args = list(increment_by = 5),
+      allow_no_input_binding_ = TRUE
+    )
+    expect_equal(
+      driver$get_value(output = "inputs-unev"),
+      tree_text(
+        list(set_to = 100L, increment_by = shiny::reactiveVal(2L))
+      )$unevaluated
+    )
+  })
+  it("logs rejected arguments and keeps the app running", {
+    driver <- local_app_driver(shinytest2_app_fn(
+      source_pef("module2app", "simple", "args")
+    ))
+    driver$set_inputs(
+      crow_server_args = list(set_to = 5),
+      allow_no_input_binding_ = TRUE
+    )
+    expect_match(
+      paste(driver$get_logs()$message, collapse = "\n"),
+      "Cannot change server argument `set_to`",
+      fixed = TRUE
+    )
+    driver$click(selector = "#test_object-button")
+    expect_equal(driver$get_value(export = "res"), 102L)
+  })
 })

@@ -43,7 +43,7 @@
         <pre class="shiny-text-output noplaceholder" id="inputs-eval"></pre>
         <h2>Module UI</h2>
         <div id="crow-module2app-module-ui">
-          <button id="test_object-button" type="button" class="btn btn-default action-button">Counter</button>
+          <button id="test_object-button" type="button" class="btn btn-default action-button"><span class="action-label">Counter</span></button>
           <pre class="shiny-text-output noplaceholder" id="test_object-out"></pre>
         </div>
         <h2>Server Return Values</h2>
@@ -86,7 +86,7 @@
       <pre class="shiny-text-output noplaceholder" id="inputs-eval"></pre>
       <h2>Module UI</h2>
       <div id="crow-module2app-module-ui">
-        <button id="test_object-button" type="button" class="btn btn-default action-button">Counter</button>
+        <button id="test_object-button" type="button" class="btn btn-default action-button"><span class="action-label">Counter</span></button>
         <pre class="shiny-text-output noplaceholder" id="test_object-out"></pre>
       </div>
       <h2>Server Return Values</h2>
@@ -94,4 +94,92 @@
       <pre class="shiny-text-output noplaceholder" id="returns-unev"></pre>
       <h3>Evaluated</h3>
       <pre class="shiny-text-output noplaceholder" id="returns-eval"></pre>
+
+# module2app_bare / shows only the module UI
+
+    Code
+      module2app_bare_ui(module_ui = counter_button_ui)
+    Output
+      <div class="container-fluid">
+        <div id="crow-module2app-module-ui">
+          <button id="test_object-button" type="button" class="btn btn-default action-button"><span class="action-label">Counter</span></button>
+          <pre class="shiny-text-output noplaceholder" id="test_object-out"></pre>
+        </div>
+      </div>
+
+# module2app_bare / exports the trees of server arguments and return values
+
+    Code
+      cat(returns$unevaluated)
+    Output
+      $increment_by
+      reactive({
+          increment_by()
+      }) 
+      
+      $count_by
+      reactive({
+          count_by()
+      }) 
+      
+      $a_non_reactive_return
+      [1] "just for testing"
+      
+      $deeper_copy_of_increment_by
+      reactive({
+          list(increment_by = shiny::reactive(increment_by()))
+      }) 
+
+---
+
+    Code
+      cat(returns$evaluated)
+    Output
+      $increment_by
+      [1] 1
+      
+      $count_by
+      [1] 2
+      
+      $a_non_reactive_return
+      [1] "just for testing"
+      
+      $deeper_copy_of_increment_by
+      $deeper_copy_of_increment_by$increment_by
+      [1] 1
+
+# tree_text / prints deeply nested returns, including reactives of reactives
+
+    Code
+      cat(tree_text(res)$evaluated)
+    Output
+      $increment_by
+      [1] 1
+      
+      $count_by
+      [1] 3
+      
+      $a_non_reactive_return
+      [1] "just for testing"
+      
+      $deeper_copy_of_increment_by
+      $deeper_copy_of_increment_by$increment_by
+      [1] 1
+
+# crow_server_args / rejects unknown and non-reactive arguments
+
+    Code
+      session$setInputs(crow_server_args = list(increment_by = 5, set_to = 3, foo = 1))
+    Message
+      Error:
+      ! Cannot change server arguments `set_to`, `foo`
+      i Only reactive arguments passed in `server_args` can change: `increment_by`
+
+# crow_server_args / rejects values other than JSON objects
+
+    Code
+      session$setInputs(crow_server_args = 5)
+    Message
+      Error:
+      ! `crow_server_args` must be a JSON object keyed by server argument name.
 

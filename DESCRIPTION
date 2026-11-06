@@ -24,26 +24,39 @@ Encoding: UTF-8
 LazyData: true
 Language: en
 Roxygen: list(markdown = TRUE)
+Depends:
+    R (>= 4.1.0)
 Imports:
+    callr,
     checkmate,
+    elf,
+    ellmer,
     fs,
     glue,
+    jsonlite,
+    magick,
+    mcptools,
+    pkgload,
     purrr,
     rlang,
     shiny,
-    testthat
+    shinytest2,
+    showimage,
+    testthat,
+    utils,
+    withr
 Suggests:
+    bsicons,
     bslib,
     brio,
     htmltools,
-    elf,
-    roxygen2,
-    shinytest2,
-    showimage,
-    withr,
-    magick
+    processx,
+    ps,
+    roxygen2
 Remotes:
     dataheld/elf
 Config/testthat/edition: 3
 Config/testthat/parallel: true
 Config/Needs/website: rmarkdown
+Config/Needs/development: devtools, servr, usethis
+RoxygenNote: 7.3.3
