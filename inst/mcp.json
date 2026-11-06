@@ -6,7 +6,7 @@
       "command": "Rscript",
       "args": [
         "-e",
-        "crow::crow_mcp_server('${PLUGIN_ROOT}')"
+        "crow::crow_mcp_server()"
       ]
     }
   }

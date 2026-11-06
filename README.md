@@ -50,7 +50,7 @@ for example in Copilot CLI:
 copilot plugin install "$(Rscript -e 'cat(system.file(package = "crow"))')"
 ```
 
-The plugin must match the installed crow version:
+Clients such as Copilot CLI copy the plugin when they install it:
 reinstall it after you upgrade crow.
 
 The plugin's MCP server lets agents run a module of your package

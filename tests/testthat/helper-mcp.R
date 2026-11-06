@@ -67,12 +67,8 @@ mcp_command <- function() {
       )
     ))
   }
-  root <- system.file(package = "crow")
-  server <- jsonlite::read_json(file.path(root, "mcp.json"))$mcpServers$crow
-  c(
-    server$command,
-    gsub("${PLUGIN_ROOT}", root, unlist(server$args), fixed = TRUE)
-  )
+  mcp <- jsonlite::read_json(system.file("mcp.json", package = "crow"))
+  c(mcp$mcpServers$crow$command, unlist(mcp$mcpServers$crow$args))
 }
 
 send <- function(server, message) {
