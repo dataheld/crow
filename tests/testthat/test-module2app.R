@@ -95,7 +95,7 @@ test_that("works with only server args", {
     "[[1]]\n[1] 1 2"
   )
 })
-test_that("works with `shiny.tag` returns (workaround)", {
+test_that("works with `shiny.tag` returns", {
   driver <- local_app_driver(shinytest2_app_fn(
     module2app(server_args = list(bar = 1, zap = htmltools::p()))
   ))
@@ -130,6 +130,7 @@ test_that("works with nested modules and deep returns", {
   driver <- local_app_driver(shinytest2_app_fn(
     source_pef("module2app", "nested", "deep")
   ))
+  driver$wait_for_value(output = "returns-eval")
   driver$expect_text("#returns-eval")
   # changing increment does not work in test,
   # probably because of needed sleep or something
@@ -262,6 +263,15 @@ test_that("module2app exports the trees it displays", {
   expect_equal(server_args$evaluated, driver$get_value(output = "inputs-eval"))
 })
 
+browsable_p <- htmltools::browsable(htmltools::p())
+
+local_failing_viewer <- function(.local_envir = parent.frame()) {
+  withr::local_options(
+    viewer = \(url, ...) stop("Viewer called."),
+    .local_envir = .local_envir
+  )
+}
+
 describe("tree_text", {
   it("prints flat returns", {
     tree <- shiny::reactive(2L)
@@ -291,8 +301,44 @@ describe("tree_text", {
       "[[1]]\n[1] 1"
     )
   })
-  it("skips shiny tags", {
-    expect_equal(tree_text(htmltools::p())$evaluated, "character(0)")
+  it("prints shiny tags", {
+    expect_equal(tree_text(htmltools::p())$evaluated, "<p></p>")
+  })
+  it("prints browsable leaves as text, without the viewer", {
+    local_failing_viewer()
+    expect_equal(
+      tree_text(browsable_p),
+      list(unevaluated = "<p></p>", evaluated = "<p></p>")
+    )
+    expect_equal(
+      tree_text(list(a = list(browsable_p))),
+      list(
+        unevaluated = "$a\n$a[[1]]\n<p></p>\n",
+        evaluated = "$a\n$a[[1]]\n<p></p>\n"
+      )
+    )
+    expect_equal(
+      tree_text(shiny::reactive(list(a = browsable_p)))$evaluated,
+      "$a\n<p></p>"
+    )
+  })
+  it("prints classed lists without walking them", {
+    time <- as.POSIXlt("2026-01-01", tz = "UTC")
+    expect_equal(print_text(list(time)), "[[1]]\n[1] \"2026-01-01 UTC\"")
+  })
+})
+
+describe("mixed_react_tree_server", {
+  it("prints browsable leaves as text, without the viewer", {
+    local_failing_viewer()
+    shiny::testServer(
+      mixed_react_tree_server,
+      args = list(tree = list(a = browsable_p)),
+      expr = {
+        expect_equal(output$unev, "$a\n<p></p>")
+        expect_equal(output$eval, "$a\n<p></p>")
+      }
+    )
   })
 })
 
@@ -380,6 +426,9 @@ describe("crow_server_args", {
     driver$set_inputs(
       crow_server_args = list(set_to = 5),
       allow_no_input_binding_ = TRUE
+    )
+    driver$wait_for_js(
+      "document.querySelector('.shiny-notification-error') !== null"
     )
     expect_match(
       paste(driver$get_logs()$message, collapse = "\n"),

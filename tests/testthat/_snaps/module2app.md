@@ -57,13 +57,13 @@
 
     "Counter"
 
-# works with `shiny.tag` returns (workaround)
+# works with `shiny.tag` returns
 
     Code
       driver$get_value(output = "inputs-eval")
     Output
       <!--@generated-->
-      [1] "$bar\n[1] 1\n\n$zap\ncharacter(0)"
+      [1] "$bar\n[1] 1\n\n$zap\n<p></p>"
 
 # works with nested modules and deep returns
 

@@ -62,7 +62,6 @@
 #' @family agentic coding
 #' @export
 crow_tools <- function() {
-  rlang::check_installed(c("ellmer", "callr", "pkgload", "jsonlite", "withr"))
   path <- ellmer::type_string(paste(
     "Absolute path to the R package root, which contains `DESCRIPTION`.",
     "Its working tree is loaded."
@@ -203,15 +202,8 @@ crow_tools <- function() {
 }
 
 #' @rdname crow_tools
-#' @param plugin_root
-#' The root of the agent plugin which starts the server,
-#' to check that it belongs to the installed crow version.
 #' @export
-crow_mcp_server <- function(plugin_root = NULL) {
-  rlang::check_installed("mcptools")
-  if (!is.null(plugin_root)) {
-    check_plugin_version(plugin_root)
-  }
+crow_mcp_server <- function() {
   reg.finalizer(the, \(e) purrr::walk(names(e$apps), app_close), onexit = TRUE)
   mcptools::mcp_server(tools = crow_tools(), session_tools = FALSE)
 }
@@ -230,24 +222,6 @@ reporting <- function(fun) {
 
 report_error <- function(cnd) {
   agent_report(list(Error = conditionMessage(cnd)))
-}
-
-check_plugin_version <- function(plugin_root) {
-  plugin <- jsonlite::read_json(file.path(plugin_root, "plugin.json"))$version
-  installed <- format(utils::packageVersion("crow"))
-  if (!identical(plugin, installed)) {
-    rlang::abort(c(
-      paste0(
-        "The crow agent plugin (",
-        plugin,
-        ") ",
-        "does not match the installed crow (",
-        installed,
-        ")."
-      ),
-      i = "Install the plugin again from `system.file(package = \"crow\")`."
-    ))
-  }
 }
 
 the <- new.env(parent = emptyenv())
@@ -364,7 +338,8 @@ module_app_start <- function(
   log <- tempfile(fileext = ".log")
   on.exit(unlink(log))
   the$apps[[id]] <- callr::r_session$new(
-    callr::r_session_options(supervise = TRUE, stdout = log, stderr = log)
+    callr::r_session_options(supervise = TRUE, stdout = log, stderr = log),
+    wait_timeout = 120000
   )
   sections <- tryCatch(
     app_run(id, "app_start_child", list(app), path = path),

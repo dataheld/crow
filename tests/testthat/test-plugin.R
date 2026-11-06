@@ -5,9 +5,5 @@ test_that("agent plugin version matches package version", {
 
 test_that("agent plugin starts the MCP server of the installed crow", {
   mcp <- jsonlite::read_json(system.file("mcp.json", package = "crow"))
-  expect_match(
-    mcp$mcpServers$crow$args[[2]],
-    "crow::crow_mcp_server('${PLUGIN_ROOT}')",
-    fixed = TRUE
-  )
+  expect_identical(mcp$mcpServers$crow$args[[2]], "crow::crow_mcp_server()")
 })

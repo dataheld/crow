@@ -157,6 +157,10 @@ test_that("module app tools report wrong calls as errors", {
     "^## Error\n"
   )
   expect_match(tool("module_app_stop")("app0"), "^## Error\nNo running app")
+  expect_match(
+    tool("module_app_start")(path = withr::local_tempdir()),
+    "^## Error\n"
+  )
 })
 
 test_that("module apps run apart", {
@@ -188,13 +192,6 @@ test_that("stopping an app ends its processes", {
   session <- the$apps[[id]]
   tool("module_app_stop")(id)
   expect_false(session$is_alive())
-})
-
-test_that("the MCP server checks the plugin version", {
-  plugin <- withr::local_tempdir()
-  writeLines('{"version": "0.0.0"}', file.path(plugin, "plugin.json"))
-  expect_error(check_plugin_version(plugin), "Install the plugin again")
-  expect_no_error(check_plugin_version(system.file(package = "crow")))
 })
 
 test_that("log_problems() keeps whole condition messages", {
