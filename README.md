@@ -58,8 +58,7 @@ without crow's displays for humans,
 set its inputs, read its arguments, return values, reactlog events and logs,
 and screenshot it
 (see `?crow_tools`).
-It needs crow's suggested packages mcptools, ellmer, callr, pkgload and shinytest2,
-and Chrome.
+It needs Chrome.
 The server runs R code that the agent writes, with your rights;
 only a sandbox around the agent isolates your system from that code.
 To serve crow's tools together with [btw](https://posit-dev.github.io/btw/)'s,

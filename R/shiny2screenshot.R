@@ -74,13 +74,6 @@ check_installed_roxygen2 <- function() {
   )
 }
 
-check_installed_shinytest2 <- function() {
-  rlang::check_installed(
-    "shinytest2",
-    reason = "shinytest2 is needed to create screenshots of shiny apps."
-  )
-}
-
 #' Get screenshot from shiny app
 #'
 #' Wrapper around [local_app_driver()].
@@ -147,6 +140,9 @@ get_screenshot_from_app <- function(
   f_screenshot()
 }
 
+#' shinytest2 shows screenshots with showimage, but only suggests it.
+#' @importFrom showimage show_image
+#' @noRd
 get_screenshot_from_app_strictly <- function(
   appDir,
   screenshot_args,
@@ -411,7 +407,6 @@ image_animate_snaps <- function(snaps = fs::path(), fps = 5, ...) {
     rlang::abort("File could not be found.")
   }
   names(snaps) <- fs::path_file(snaps)
-  check_installed_magick()
   # stripping helps to avoid spurious diffs
   res <- magick::image_read(snaps, strip = TRUE)
   if (length(snaps) == 1) {
@@ -428,11 +423,4 @@ image_animate_snaps <- function(snaps = fs::path(), fps = 5, ...) {
 #' @export
 image_write_snaps <- function(image, path = withr::local_tempfile()) {
   magick::image_write(image = image, path = path)
-}
-
-check_installed_magick <- function() {
-  rlang::check_installed(
-    "magick",
-    reason = "magick is needed show `snaps`."
-  )
 }
