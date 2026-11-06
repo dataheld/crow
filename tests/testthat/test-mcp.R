@@ -157,6 +157,10 @@ test_that("module app tools report wrong calls as errors", {
     "^## Error\n"
   )
   expect_match(tool("module_app_stop")("app0"), "^## Error\nNo running app")
+  expect_match(
+    tool("module_app_start")(path = withr::local_tempdir()),
+    "^## Error\n"
+  )
 })
 
 test_that("module apps run apart", {

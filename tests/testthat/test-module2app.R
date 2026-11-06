@@ -130,6 +130,7 @@ test_that("works with nested modules and deep returns", {
   driver <- local_app_driver(shinytest2_app_fn(
     source_pef("module2app", "nested", "deep")
   ))
+  driver$wait_for_value(output = "returns-eval")
   driver$expect_text("#returns-eval")
   # changing increment does not work in test,
   # probably because of needed sleep or something
@@ -425,6 +426,9 @@ describe("crow_server_args", {
     driver$set_inputs(
       crow_server_args = list(set_to = 5),
       allow_no_input_binding_ = TRUE
+    )
+    driver$wait_for_js(
+      "document.querySelector('.shiny-notification-error') !== null"
     )
     expect_match(
       paste(driver$get_logs()$message, collapse = "\n"),

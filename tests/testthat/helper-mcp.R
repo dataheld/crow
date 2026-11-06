@@ -6,7 +6,12 @@ pkg_root <- function() {
   normalizePath(path)
 }
 
-app_id <- function(report) regmatches(report, regexpr("app[0-9]+", report))
+app_id <- function(report) {
+  if (startsWith(report, "## Error")) {
+    stop(report, call. = FALSE)
+  }
+  regmatches(report, regexpr("app[0-9]+", report))
+}
 
 local_mcp_client <- function(.local_envir = parent.frame()) {
   server <- processx::process$new(
