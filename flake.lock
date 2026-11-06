@@ -122,11 +122,11 @@
         "up": "up"
       },
       "locked": {
-        "lastModified": 1793955113,
-        "narHash": "sha256-BavVg38OdVb5OkbfgwWbrXUKNRCv1DNGUmTgIq3uPJ8=",
+        "lastModified": 1793956215,
+        "narHash": "sha256-zlhix6Ty+hM+mRtlbCrrKW5rCjE5HjvvUUu2fZvg7Cs=",
         "owner": "dataheld",
         "repo": "nullkomma",
-        "rev": "a392ee6c4535cd2708cf19b7864a1b8c50091c79",
+        "rev": "d79cb6f7338b46d4dac5dd769adb9ed2aead93b0",
         "type": "github"
       },
       "original": {
