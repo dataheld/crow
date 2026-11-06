@@ -10,6 +10,10 @@ reference:
     desc: Improving documentation with screenshots from shiny apps and modules.
   - contents:
       - has_concept("screenshot")
+  - title: Documentation
+    desc: Helpers to show shiny apps on a pkgdown site.
+  - contents:
+      - has_concept("documentation")
   - title: Modules
     desc: Helpers around working with shiny modules.
   - contents:
