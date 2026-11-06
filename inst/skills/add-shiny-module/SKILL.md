@@ -42,7 +42,7 @@ from [`assets/`](assets/), and does not overwrite files.
 The scaffold runs and passes its tests;
 replace its placeholder logic with the real module.
 Follow crow's own example modules,
-[`counter_button`](https://github.com/dataheld/crow/blob/main/R/modules.R)
+[`counter_button`](https://github.com/dataheld/crow/blob/main/R/module2app.R)
 and its nested parent `x_counter_button`.
 
 ### Server
