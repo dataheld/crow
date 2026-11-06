@@ -482,8 +482,10 @@ tree_server <- function(id, tree, evaluated = tree) {
   shiny::moduleServer(
     id = id,
     function(input, output, session) {
-      output$unev <- shiny::renderPrint(tree)
-      output$eval <- shiny::renderPrint(exec_tree_of_reacs(evaluated))
+      output$unev <- shiny::renderPrint(unbrowsable(tree))
+      output$eval <- shiny::renderPrint(
+        unbrowsable(exec_tree_of_reacs(evaluated))
+      )
     }
   )
 }
@@ -499,7 +501,21 @@ tree_text <- function(tree, evaluated = tree) {
 
 print_text <- function(x) {
   # like shiny::renderPrint(), which drops the final newline
-  sub("\n$", "", paste(utils::capture.output(x), collapse = "\n"))
+  sub("\n$", "", paste(utils::capture.output(unbrowsable(x)), collapse = "\n"))
+}
+
+#' Keeps `print()` from opening the Viewer over the running app
+#'
+#' Only bare lists are nodes:
+#' the elements of a classed list, such as `POSIXlt`,
+#' can be lists of that class, without end.
+#' @noRd
+unbrowsable <- function(x) {
+  purrr::modify_tree(
+    x,
+    is_node = rlang::is_bare_list,
+    leaf = \(x) htmltools::browsable(x, value = FALSE)
+  )
 }
 
 exec_tree_of_reacs <- function(x) {

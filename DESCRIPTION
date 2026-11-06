@@ -33,6 +33,7 @@ Imports:
     ellmer,
     fs,
     glue,
+    htmltools,
     jsonlite,
     magick,
     mcptools,
@@ -49,7 +50,6 @@ Suggests:
     bsicons,
     bslib,
     brio,
-    htmltools,
     processx,
     ps,
     roxygen2
