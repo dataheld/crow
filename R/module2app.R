@@ -422,11 +422,9 @@ no_fun_provided_glue <- function(x) glue::glue("No {x} function provided.")
 #' of your modules outside of this testbed.
 #'
 #' @section Bugs:
-#' The display currently includes workarounds for these (likely upstream) bugs:
-#' - The content of reactive gets [unclass()]ed
-#'   before display ([#40](https://github.com/dataheld/crow/issues/40)).
-#' - Some classes from the htmltools package get [format()]ted, not [print()]ed
-#'   ([#39](https://github.com/dataheld/crow/issues/38)).
+#' The display currently includes a workaround for this (likely upstream) bug:
+#' The content of reactive gets [unclass()]ed
+#' before display ([#40](https://github.com/dataheld/crow/issues/40)).
 #'
 #' @details
 #' In the simplest case,
@@ -484,59 +482,24 @@ tree_server <- function(id, tree, evaluated = tree) {
   shiny::moduleServer(
     id = id,
     function(input, output, session) {
-      output$unev <- shiny::renderPrint(tree_unevaluated(tree))
-      output$eval <- shiny::renderPrint(tree_evaluated(evaluated))
+      output$unev <- shiny::renderPrint(tree)
+      output$eval <- shiny::renderPrint(exec_tree_of_reacs(evaluated))
     }
   )
-}
-
-tree_unevaluated <- function(tree) {
-  filter_tree_shinytag(tree)
-}
-
-tree_evaluated <- function(tree) {
-  tree |>
-    exec_tree_of_reacs() |>
-    filter_tree_shinytag()
 }
 
 #' Print both trees to text, as [mixed_react_tree_server()] displays them
 #' @noRd
 tree_text <- function(tree, evaluated = tree) {
   shiny::isolate(list(
-    unevaluated = print_text(tree_unevaluated(tree)),
-    evaluated = print_text(tree_evaluated(evaluated))
+    unevaluated = print_text(tree),
+    evaluated = print_text(exec_tree_of_reacs(evaluated))
   ))
 }
 
 print_text <- function(x) {
   # like shiny::renderPrint(), which drops the final newline
   sub("\n$", "", paste(utils::capture.output(x), collapse = "\n"))
-}
-
-# TODO remove this as per https://github.com/dataheld/crow/issues/38
-#' There appears to be a bug (in positron?)
-#' by which `shiny.tag` (and similarly classed) objects
-#' *always* get opened in the Viewer,
-#' which breaks and/or overrides the shiny app preview.
-#'
-#' This just skips all shinytag returns.
-#' @noRd
-is_shinytag <- function(x) {
-  inherits(x, c("shiny.tag", "shiny.tag.list", "html"))
-}
-
-filter_tree_shinytag <- function(x) {
-  purrr::modify_tree(
-    x,
-    leaf = function(x) {
-      # this is the equivalent to no print output to the console
-      if (is_shinytag(x)) {
-        x <- character(0)
-      }
-      x
-    }
-  )
 }
 
 exec_tree_of_reacs <- function(x) {
