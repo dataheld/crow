@@ -27,31 +27,31 @@ Roxygen: list(markdown = TRUE)
 Depends:
     R (>= 4.1.0)
 Imports:
+    callr,
     checkmate,
+    ellmer,
     fs,
     glue,
+    jsonlite,
+    mcptools,
+    pkgload,
     purrr,
     rlang,
     shiny,
+    shinytest2,
     testthat,
-    utils
+    utils,
+    withr
 Suggests:
     bsicons,
     bslib,
     brio,
-    callr,
-    ellmer,
     htmltools,
     elf,
-    jsonlite,
-    mcptools,
-    pkgload,
     processx,
     ps,
     roxygen2,
-    shinytest2,
     showimage,
-    withr,
     magick
 Remotes:
     dataheld/elf
