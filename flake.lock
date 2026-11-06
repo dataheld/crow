@@ -122,12 +122,12 @@
         "up": "up"
       },
       "locked": {
-        "lastModified": 1793956215,
-        "narHash": "sha256-zlhix6Ty+hM+mRtlbCrrKW5rCjE5HjvvUUu2fZvg7Cs=",
-        "owner": "dataheld",
-        "repo": "nullkomma",
-        "rev": "d79cb6f7338b46d4dac5dd769adb9ed2aead93b0",
-        "type": "github"
+        "lastModified": 1794000798,
+        "narHash": "sha256-Bp4XAThoFEZtthFpAzy0ZKxWiRZrUyOjGg55SS13vLc=",
+        "rev": "77ee93b09700e199a47bd55c3d2509e08579603f",
+        "revCount": 723,
+        "type": "tarball",
+        "url": "https://api.flakehub.com/f/pinned/dataheld/nullkomma/0.1.723%2Brev-77ee93b09700e199a47bd55c3d2509e08579603f/01a1b2d0-e8b0-7b73-b32a-b252ecdd4cfb/source.tar.gz"
       },
       "original": {
         "type": "tarball",
