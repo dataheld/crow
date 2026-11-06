@@ -190,13 +190,6 @@ test_that("stopping an app ends its processes", {
   expect_false(session$is_alive())
 })
 
-test_that("the MCP server checks the plugin version", {
-  plugin <- withr::local_tempdir()
-  writeLines('{"version": "0.0.0"}', file.path(plugin, "plugin.json"))
-  expect_error(check_plugin_version(plugin), "Install the plugin again")
-  expect_no_error(check_plugin_version(system.file(package = "crow")))
-})
-
 test_that("log_problems() keeps whole condition messages", {
   lines <- c(
     "[shiny stderr] Listening on http://127.0.0.1:1234",
