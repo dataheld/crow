@@ -194,6 +194,17 @@ test_that("stopping an app ends its processes", {
   expect_false(session$is_alive())
 })
 
+test_that("module apps do not take their start limit from the environment", {
+  withr::local_envvar(SHINYTEST2_LOAD_TIMEOUT = "1")
+  start <- tool("module_app_start")(
+    path = pkg_root(),
+    ui = "counter_button_ui",
+    server = "counter_button_server"
+  )
+  withr::defer(try(tool("module_app_stop")(app_id(start)), silent = TRUE))
+  expect_no_match(start, "## Error", fixed = TRUE)
+})
+
 test_that("log_problems() keeps whole condition messages", {
   lines <- c(
     "[shiny stderr] Listening on http://127.0.0.1:1234",
