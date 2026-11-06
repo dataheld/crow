@@ -19,9 +19,9 @@ with the module's input arguments, UI and return values:
 crow is:
 
 - **Opinionated on quality**:
-  shiny apps and modules should be exported functions in an R package,
-  not generated boilerplate.
-  Only crow's agent skill writes code: a starter module and its test.
+  shiny apps and modules should be exported functions in an R package.
+  crow adds helpers that you call, not generated code to maintain.
+  The agent skill's starter module is the one exception.
 - **Flexible in implementation**:
   crow is not a framework.
   Use only the helpers that you need.
