@@ -11,31 +11,28 @@ It can help with:
 - 📖 documentation
 - ... and more
 
-crow is **opinionated on quality** ...
-
-- Shiny apps and their modules should be proper, exported *functions in an R package*.
-- *No code generation*.
-  If you feel like you need to programmatically create code, you're doing it wrong.
-  (I'm not talking LLMs here, but bloated boilerplates).
-
-... but also **flexible in implementation** ...
-
-- *No framework*.
-  You use crow, crow doesn't use you.
-  (It's not like [])
-
-... and **lightweight** ...
-
-- *~~`Imports: crow`~~*.
-  crow is a time- and line-saver during development, but doesn't want to be your dependency.
-  Shiny is enough.
-
-In all of these ways, crow is also a (tiny) opposite to [rhino](https://appsilon.github.io/rhino/), [golem](https://thinkr-open.github.io/golem/) or [leprechaun](https://leprechaun.opifex.org/).
-
 For example, `module2app()` shows a module in a full app,
 with the module's input arguments, UI and return values:
 
 ![The module2app() testbed for a counter module, clicked three times](man/figures/crow_screenshots/module2app/double-counter.gif)
+
+crow is:
+
+- **Opinionated on quality**:
+  shiny apps and modules should be exported functions in an R package,
+  not generated boilerplate.
+  Only crow's agent skill writes code: a starter module and its test.
+- **Flexible in implementation**:
+  crow is not a framework.
+  Use only the helpers that you need.
+- **Lightweight**:
+  crow is for development.
+  Your app needs shiny, not crow.
+
+If you want a framework or a generated app structure,
+use [rhino](https://appsilon.github.io/rhino/),
+[golem](https://thinkr-open.github.io/golem/)
+or [leprechaun](https://leprechaun.opifex.org/).
 
 ## Installation
 
@@ -44,12 +41,12 @@ with the module's input arguments, UI and return values:
 pak::pak("dataheld/crow")
 ```
 
-crow is a *development*-time dependency; it should not be in your `DESCRIPTION`s `Imports:`.
+Do not add crow to `Imports:` in your `DESCRIPTION`.
+If your tests or testbed apps call crow,
+add it to `Suggests:`.
 
-If you want to use it in your tests, you will have to include it in `Suggests:`.
-
-If you don't need it for tests,
-but want to otherwise record that you used it for development,
+If they don't,
+but you want to record that you used crow for development,
 consider an [extra dependency](https://pak.r-lib.org/reference/package-dependency-types.html#extra-dependencies):
 
 ```DESCRIPTION
