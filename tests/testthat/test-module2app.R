@@ -95,7 +95,7 @@ test_that("works with only server args", {
     "[[1]]\n[1] 1 2"
   )
 })
-test_that("works with `shiny.tag` returns (workaround)", {
+test_that("works with `shiny.tag` returns", {
   driver <- local_app_driver(shinytest2_app_fn(
     module2app(server_args = list(bar = 1, zap = htmltools::p()))
   ))
@@ -291,8 +291,8 @@ describe("tree_text", {
       "[[1]]\n[1] 1"
     )
   })
-  it("skips shiny tags", {
-    expect_equal(tree_text(htmltools::p())$evaluated, "character(0)")
+  it("prints shiny tags", {
+    expect_equal(tree_text(htmltools::p())$evaluated, "<p></p>")
   })
 })
 
