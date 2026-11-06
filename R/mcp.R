@@ -338,7 +338,8 @@ module_app_start <- function(
   log <- tempfile(fileext = ".log")
   on.exit(unlink(log))
   the$apps[[id]] <- callr::r_session$new(
-    callr::r_session_options(supervise = TRUE, stdout = log, stderr = log)
+    callr::r_session_options(supervise = TRUE, stdout = log, stderr = log),
+    wait_timeout = 120000
   )
   sections <- tryCatch(
     app_run(id, "app_start_child", list(app), path = path),
