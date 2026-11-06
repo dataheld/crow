@@ -11,7 +11,7 @@
       "type": "deps",
       "direct": true,
       "binary": false,
-      "dependencies": ["callr", "checkmate", "ellmer", "fs", "glue", "jsonlite", "mcptools", "pkgload", "purrr", "rlang", "shiny", "shinytest2", "testthat", "withr"],
+      "dependencies": ["callr", "checkmate", "elf", "ellmer", "fs", "glue", "jsonlite", "magick", "mcptools", "pkgload", "purrr", "rlang", "shiny", "shinytest2", "showimage", "testthat", "withr"],
       "vignettes": false,
       "metadata": {
         "RemotePkgRef": "deps::.",
@@ -24,6 +24,40 @@
       "directpkg": true,
       "license": "file LICENSE",
       "dep_types": ["Depends", "Imports", "LinkingTo", "Suggests", "Config/Needs/website", "Config/Needs/development"],
+      "params": [],
+      "install_args": "",
+      "sysreqs": ""
+    },
+    {
+      "ref": "dataheld/elf",
+      "package": "elf",
+      "version": "0.0.0.9000",
+      "type": "github",
+      "direct": false,
+      "binary": false,
+      "dependencies": ["checkmate", "cli", "fs", "glue", "options", "pkgload", "purrr", "rlang", "usethis", "withr"],
+      "vignettes": false,
+      "needscompilation": true,
+      "metadata": {
+        "RemoteType": "github",
+        "RemoteHost": "api.github.com",
+        "RemoteRepo": "elf",
+        "RemoteUsername": "dataheld",
+        "RemotePkgRef": "dataheld/elf",
+        "RemoteRef": "HEAD",
+        "RemoteSha": "bd8519a4b37f9eb2b9b583932641fd81c712bc13",
+        "GithubRepo": "elf",
+        "GithubUsername": "dataheld",
+        "GithubRef": "HEAD",
+        "GithubSHA1": "bd8519a4b37f9eb2b9b583932641fd81c712bc13"
+      },
+      "sources": ["https://api.github.com/repos/dataheld/elf/zipball/bd8519a4b37f9eb2b9b583932641fd81c712bc13"],
+      "target": "src/contrib/elf_0.0.0.9000_bd8519a.tar.gz",
+      "platform": "source",
+      "rversion": "*",
+      "directpkg": false,
+      "license": "file LICENSE",
+      "dep_types": ["Depends", "Imports", "LinkingTo"],
       "params": [],
       "install_args": "",
       "sysreqs": ""
@@ -323,7 +357,7 @@
       "type": "standard",
       "direct": false,
       "binary": false,
-      "dependencies": ["otel", "processx", "R6"],
+      "dependencies": ["R6", "otel", "processx"],
       "vignettes": false,
       "needscompilation": false,
       "metadata": {
@@ -387,7 +421,7 @@
       "type": "standard",
       "direct": false,
       "binary": false,
-      "dependencies": ["cli", "curl", "fastmap", "jsonlite", "later", "magrittr", "processx", "promises", "R6", "rlang", "websocket", "withr", "zip"],
+      "dependencies": ["R6", "cli", "curl", "fastmap", "jsonlite", "later", "magrittr", "processx", "promises", "rlang", "websocket", "withr", "zip"],
       "vignettes": false,
       "needscompilation": false,
       "metadata": {
@@ -706,7 +740,7 @@
       "type": "standard",
       "direct": false,
       "binary": false,
-      "dependencies": ["cli", "R6"],
+      "dependencies": ["R6", "cli"],
       "vignettes": false,
       "needscompilation": false,
       "metadata": {
@@ -898,7 +932,7 @@
       "type": "standard",
       "direct": false,
       "binary": false,
-      "dependencies": ["cli", "coro", "glue", "httr2", "jsonlite", "later", "lifecycle", "promises", "R6", "rlang", "S7", "tibble", "vctrs"],
+      "dependencies": ["R6", "S7", "cli", "coro", "glue", "httr2", "jsonlite", "later", "lifecycle", "promises", "rlang", "tibble", "vctrs"],
       "vignettes": false,
       "needscompilation": false,
       "metadata": {
@@ -1344,7 +1378,7 @@
       "type": "standard",
       "direct": false,
       "binary": false,
-      "dependencies": ["later", "promises", "R6", "Rcpp"],
+      "dependencies": ["R6", "Rcpp", "later", "promises"],
       "vignettes": false,
       "needscompilation": true,
       "metadata": {
@@ -1376,7 +1410,7 @@
       "type": "standard",
       "direct": false,
       "binary": false,
-      "dependencies": ["cli", "curl", "glue", "lifecycle", "magrittr", "openssl", "R6", "rlang", "vctrs", "withr"],
+      "dependencies": ["R6", "cli", "curl", "glue", "lifecycle", "magrittr", "openssl", "rlang", "vctrs", "withr"],
       "vignettes": false,
       "needscompilation": false,
       "metadata": {
@@ -1600,7 +1634,7 @@
       "type": "standard",
       "direct": false,
       "binary": false,
-      "dependencies": ["curl", "magrittr", "Rcpp"],
+      "dependencies": ["Rcpp", "curl", "magrittr"],
       "vignettes": false,
       "needscompilation": true,
       "metadata": {
@@ -1840,8 +1874,7 @@
       "rversion": "*",
       "directpkg": false,
       "license": "MIT + file LICENSE",
-      "sha256": "1fc030ad0a008472eac7f086666a7623bdbe6d27c5fdb07b5510f56545d2f4e7",
-      "filesize": 1177207,
+      "filesize": 1043398,
       "dep_types": ["Depends", "Imports", "LinkingTo"],
       "params": [],
       "install_args": "",
@@ -1983,7 +2016,7 @@
       "type": "standard",
       "direct": false,
       "binary": false,
-      "dependencies": ["callr", "cli", "desc", "processx", "R6"],
+      "dependencies": ["R6", "callr", "cli", "desc", "processx"],
       "vignettes": false,
       "needscompilation": false,
       "metadata": {
@@ -2207,7 +2240,7 @@
       "type": "standard",
       "direct": false,
       "binary": false,
-      "dependencies": ["ps", "R6"],
+      "dependencies": ["R6", "ps"],
       "vignettes": false,
       "needscompilation": true,
       "metadata": {
@@ -2271,7 +2304,7 @@
       "type": "standard",
       "direct": false,
       "binary": false,
-      "dependencies": ["fastmap", "later", "lifecycle", "magrittr", "otel", "R6", "rlang"],
+      "dependencies": ["R6", "fastmap", "later", "lifecycle", "magrittr", "otel", "rlang"],
       "vignettes": false,
       "needscompilation": false,
       "metadata": {
@@ -2463,7 +2496,7 @@
       "type": "standard",
       "direct": false,
       "binary": false,
-      "dependencies": ["callr", "cli", "curl", "desc", "digest", "pkgbuild", "prettyunits", "R6", "rprojroot", "sessioninfo", "withr", "xopen"],
+      "dependencies": ["R6", "callr", "cli", "curl", "desc", "digest", "pkgbuild", "prettyunits", "rprojroot", "sessioninfo", "withr", "xopen"],
       "vignettes": false,
       "needscompilation": false,
       "metadata": {
@@ -2623,7 +2656,7 @@
       "type": "standard",
       "direct": false,
       "binary": false,
-      "dependencies": ["brew", "cli", "commonmark", "cpp11", "desc", "knitr", "lifecycle", "pkgload", "R6", "rdtools", "rlang", "withr", "xml2"],
+      "dependencies": ["R6", "brew", "cli", "commonmark", "cpp11", "desc", "knitr", "lifecycle", "pkgload", "rdtools", "rlang", "withr", "xml2"],
       "vignettes": false,
       "needscompilation": true,
       "metadata": {
@@ -2782,7 +2815,7 @@
       "type": "standard",
       "direct": false,
       "binary": false,
-      "dependencies": ["fs", "htmltools", "R6", "rappdirs", "rlang"],
+      "dependencies": ["R6", "fs", "htmltools", "rappdirs", "rlang"],
       "vignettes": false,
       "needscompilation": true,
       "metadata": {
@@ -2878,7 +2911,7 @@
       "type": "standard",
       "direct": false,
       "binary": false,
-      "dependencies": ["bslib", "cachem", "cli", "commonmark", "fastmap", "fontawesome", "glue", "htmltools", "httpuv", "jsonlite", "later", "lifecycle", "mime", "otel", "promises", "R6", "rlang", "sourcetools", "withr", "xtable"],
+      "dependencies": ["R6", "bslib", "cachem", "cli", "commonmark", "fastmap", "fontawesome", "glue", "htmltools", "httpuv", "jsonlite", "later", "lifecycle", "mime", "otel", "promises", "rlang", "sourcetools", "withr", "xtable"],
       "vignettes": false,
       "needscompilation": false,
       "metadata": {
@@ -2910,7 +2943,7 @@
       "type": "standard",
       "direct": false,
       "binary": false,
-      "dependencies": ["callr", "checkmate", "chromote", "cli", "cpp11", "fs", "globals", "httr2", "jsonlite", "lifecycle", "pingr", "pkgload", "R6", "rlang", "rmarkdown", "shiny", "testthat", "withr"],
+      "dependencies": ["R6", "callr", "checkmate", "chromote", "cli", "cpp11", "fs", "globals", "httr2", "jsonlite", "lifecycle", "pingr", "pkgload", "rlang", "rmarkdown", "shiny", "testthat", "withr"],
       "vignettes": false,
       "needscompilation": true,
       "metadata": {
@@ -3102,7 +3135,7 @@
       "type": "standard",
       "direct": false,
       "binary": false,
-      "dependencies": ["brio", "callr", "cli", "desc", "evaluate", "jsonlite", "lifecycle", "magrittr", "pkgload", "praise", "processx", "ps", "R6", "rlang", "waldo", "withr"],
+      "dependencies": ["R6", "brio", "callr", "cli", "desc", "evaluate", "jsonlite", "lifecycle", "magrittr", "pkgload", "praise", "processx", "ps", "rlang", "waldo", "withr"],
       "vignettes": false,
       "needscompilation": true,
       "metadata": {
@@ -3390,7 +3423,7 @@
       "type": "standard",
       "direct": false,
       "binary": false,
-      "dependencies": ["AsioHeaders", "cpp11", "later", "R6"],
+      "dependencies": ["AsioHeaders", "R6", "cpp11", "later"],
       "vignettes": false,
       "needscompilation": true,
       "metadata": {
@@ -3668,40 +3701,6 @@
       "params": [],
       "install_args": "",
       "repotype": "cran",
-      "sysreqs": ""
-    },
-    {
-      "ref": "dataheld/elf",
-      "package": "elf",
-      "version": "0.0.0.9000",
-      "type": "github",
-      "direct": false,
-      "binary": false,
-      "dependencies": ["checkmate", "cli", "fs", "glue", "options", "pkgload", "purrr", "rlang", "usethis", "withr"],
-      "vignettes": false,
-      "needscompilation": true,
-      "metadata": {
-        "RemoteType": "github",
-        "RemoteHost": "api.github.com",
-        "RemoteRepo": "elf",
-        "RemoteUsername": "dataheld",
-        "RemotePkgRef": "dataheld/elf",
-        "RemoteRef": "HEAD",
-        "RemoteSha": "bd8519a4b37f9eb2b9b583932641fd81c712bc13",
-        "GithubRepo": "elf",
-        "GithubUsername": "dataheld",
-        "GithubRef": "HEAD",
-        "GithubSHA1": "bd8519a4b37f9eb2b9b583932641fd81c712bc13"
-      },
-      "sources": ["https://api.github.com/repos/dataheld/elf/zipball/bd8519a4b37f9eb2b9b583932641fd81c712bc13"],
-      "target": "src/contrib/elf_0.0.0.9000_bd8519a.tar.gz",
-      "platform": "source",
-      "rversion": "*",
-      "directpkg": false,
-      "license": "file LICENSE",
-      "dep_types": ["Depends", "Imports", "LinkingTo"],
-      "params": [],
-      "install_args": "",
       "sysreqs": ""
     },
     {

@@ -29,16 +29,19 @@ Depends:
 Imports:
     callr,
     checkmate,
+    elf,
     ellmer,
     fs,
     glue,
     jsonlite,
+    magick,
     mcptools,
     pkgload,
     purrr,
     rlang,
     shiny,
     shinytest2,
+    showimage,
     testthat,
     utils,
     withr
@@ -47,12 +50,9 @@ Suggests:
     bslib,
     brio,
     htmltools,
-    elf,
     processx,
     ps,
-    roxygen2,
-    showimage,
-    magick
+    roxygen2
 Remotes:
     dataheld/elf
 Config/testthat/edition: 3
