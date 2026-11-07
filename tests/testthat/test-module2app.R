@@ -265,6 +265,14 @@ test_that("module2app exports the trees it displays", {
 
 browsable_p <- htmltools::browsable(htmltools::p())
 
+widget <- htmlwidgets::createWidget(
+  "x",
+  list(),
+  elementId = "w",
+  package = "htmlwidgets"
+)
+widget_html <- as.character(htmltools::as.tags(widget))
+
 local_failing_viewer <- function(.local_envir = parent.frame()) {
   withr::local_options(
     viewer = \(url, ...) stop("Viewer called."),
@@ -320,6 +328,17 @@ describe("tree_text", {
     expect_equal(
       tree_text(shiny::reactive(list(a = browsable_p)))$evaluated,
       "$a\n<p></p>"
+    )
+  })
+  it("prints htmlwidget leaves as text", {
+    expect_equal(
+      tree_text(list(a = list(widget)))$evaluated,
+      paste0("$a\n$a[[1]]\n", widget_html, "\n")
+    )
+    expect_equal(tree_text(widget)$unevaluated, widget_html)
+    expect_equal(
+      tree_text(shiny::reactive(list(a = widget)))$evaluated,
+      paste0("$a\n", widget_html)
     )
   })
   it("prints classed lists without walking them", {
