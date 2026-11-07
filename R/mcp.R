@@ -467,8 +467,14 @@ app_set_child <- function(inputs, server_args) {
   app_sections()
 }
 
+#' chromote reports a failed screenshot only as a warning,
+#' after which shinytest2 fails to copy the missing file.
+#' @noRd
 app_screenshot_child <- function(file) {
-  crow_app()$driver$get_screenshot(file)
+  withCallingHandlers(
+    crow_app()$driver$get_screenshot(file),
+    warning = \(cnd) rlang::abort(conditionMessage(cnd), call = NULL)
+  )
   c(list(Screenshot = file), app_sections(trees = FALSE))
 }
 
