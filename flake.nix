@@ -36,7 +36,7 @@
         nullkomma.r.hashes.rdtools = "sha256-8BQ/3Vdl1vndn4BNdoHfjo4TP4ioBWv3Y1bZu22ej70=";
 
         perSystem =
-          { config, ... }:
+          { config, pkgs, ... }:
           let
             testEnvironment = {
               SHINYTEST2_LOAD_TIMEOUT = "16000";
@@ -57,6 +57,25 @@
                 "pkgload::load_all(quiet = TRUE); crow_mcp_server()"
               ];
             };
+            # Chromium 157 needs fontconfig's family aliases to find Liberation.
+            # Remove in https://github.com/dataheld/nullkomma/issues/372.
+            nullkomma.r.browser = lib.mkIf pkgs.stdenv.isLinux (
+              pkgs.writeShellApplication {
+                name = "r-chromium-with-fonts";
+                text = ''
+                  export FONTCONFIG_FILE=${
+                    pkgs.makeFontsConf {
+                      fontDirectories = [
+                        pkgs.liberation_ttf
+                        pkgs.dejavu_fonts
+                      ];
+                      includes = [ "${pkgs.fontconfig.out}/etc/fonts/conf.d" ];
+                    }
+                  }
+                  exec ${lib.getExe pkgs.chromium} "$@"
+                '';
+              }
+            );
             nullkomma.devShell.env = testEnvironment;
             process-compose.dev.settings.processes = {
               r-check.environment = testEnvironment;
