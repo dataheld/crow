@@ -3,7 +3,7 @@
 #' Shows the branch of the running app.
 #' If you hover over the branch,
 #' a popover shows the commit
-#' and the times at which the app and the session started.
+#' and the times at which the R process, the app and the session started.
 #'
 #' @section Functions:
 #' - `show_deployment()`:
@@ -15,7 +15,7 @@
 #'   The content of the popover, as an HTML description list, for any other UI.
 #' - `get_deployment()`:
 #'   A list of the full commit `sha`, the `ref`,
-#'   `app_started`, and `session_started`, the time of the call.
+#'   `process_started`, `app_started` and `session_started`.
 #'   `sha` and `ref` are `NA` if unknown.
 #' - `show_deployment_app()`:
 #'   Example app.
@@ -39,21 +39,34 @@
 #'
 #' Otherwise, both are `NA`.
 #'
-#' @section Deployment:
-#' Creating `DEPLOYMENT_SOURCE` on the server is your responsibility,
-#' if the running app has neither of the other sources.
-#'
 #' @section Times:
-#' `app_started` is when the R process started.
-#' If you call [shiny::runApp()] in a long-running R session,
-#' this is earlier than the start of the app.
-#' Servers that run several processes for an app have one time for each.
+#' The times match when Shiny runs the code of an app,
+#' as explained in [Scoping rules for Shiny apps](
+#' https://shiny.posit.co/r/articles/improve/scoping/)
+#' and [The server function](
+#' https://mastering-shiny.org/basic-reactivity.html#the-server-function):
 #'
-#' `session_started` is when the server rendered the page for the session.
+#' - `process_started`:
+#'   When the R process started, as reported by [proc.time()].
+#'   In a long-running R session,
+#'   this is earlier than the start of the app.
+#'   Servers that run several processes for an app have one time for each.
+#' - `app_started`:
+#'   When you called `show_deployment()` or `show_deployment_details()`.
+#'   Call them in a static `ui`, outside of the `server` function.
+#'   Shiny runs that code once per R process:
+#'   when [shiny::runApp()] sources `app.R`, before any user connects,
+#'   or when you call [shiny::shinyApp()].
+#'   In a function `ui`, Shiny runs that code on each page load instead.
+#'   `get_deployment()` uses the time of the call, unless you pass this time.
+#' - `session_started`:
+#'   When a user opened the app and the server rendered the page,
+#'   just before Shiny calls the `server` function for the new session.
+#'   `get_deployment()` uses the time of the call,
+#'   so call it in the `server` function to get this time.
 #'
 #' @section Use without crow:
 #' You can also copy these functions into your package,
-#' except for `show_deployment_app()`,
 #' so that it does not depend on crow:
 #'
 #' ```r
@@ -62,14 +75,16 @@
 #'
 #' @param tz
 #' The time zone of the times.
-#' Defaults to `""`, the current time zone of R.
+#' Defaults to the current time zone.
+#' @param app_started
+#' A [POSIXct][base::DateTimeClasses] time at which the app started.
 #' @param ...
 #' Arguments passed on to [shiny::shinyApp()].
 #'
 #' @usage
-#' show_deployment(tz = "")
-#' show_deployment_details(tz = "")
-#' get_deployment(tz = "")
+#' show_deployment(tz = Sys.timezone())
+#' show_deployment_details(tz = Sys.timezone())
+#' get_deployment(tz = Sys.timezone(), app_started = Sys.time())
 #' @aliases show_deployment_details get_deployment
 #' @export show_deployment
 #' @export show_deployment_details

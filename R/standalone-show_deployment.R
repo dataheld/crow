@@ -6,8 +6,13 @@
 # ---
 #
 # Docs: https://crow.maxheld.de/reference/show_deployment.html
+#
+# You can edit this file by hand,
+# but consider upgrading it from crow instead,
+# which replaces the whole file, including your edits:
+# usethis::use_standalone("dataheld/crow", "show_deployment")
 
-show_deployment <- function(tz = "") {
+show_deployment <- function(tz = Sys.timezone()) {
   bslib::popover(
     htmltools::tags$small(
       class = "nav-text text-muted ms-2 me-auto",
@@ -20,13 +25,15 @@ show_deployment <- function(tz = "") {
   )
 }
 
-show_deployment_details <- function(tz = "") {
+show_deployment_details <- function(tz = Sys.timezone()) {
+  app_started <- Sys.time()
   # Shiny renders tag functions on each page load, even in a static UI.
   htmltools::tagFunction(function() {
-    info <- get_deployment(tz)
+    info <- get_deployment(tz, app_started)
     items <- list(
       Commit = substr(info$sha, 1, 7),
       Ref = info$ref,
+      `R process started` = format(info$process_started, usetz = TRUE),
       `App started` = format(info$app_started, usetz = TRUE),
       `Session started` = format(info$session_started, usetz = TRUE)
     )
@@ -46,16 +53,14 @@ show_deployment_details <- function(tz = "") {
   })
 }
 
-get_deployment <- function(tz = "") {
+get_deployment <- function(tz = Sys.timezone(), app_started = Sys.time()) {
   now <- Sys.time()
-  c(
-    get_deployment_source(),
-    list(
-      # R reports the seconds since its process started.
-      app_started = .POSIXct(now - proc.time()[["elapsed"]], tz = tz),
-      session_started = .POSIXct(now, tz = tz)
-    )
+  times <- list(
+    process_started = now - proc.time()[["elapsed"]],
+    app_started = app_started,
+    session_started = now
   )
+  c(get_deployment_source(), lapply(times, .POSIXct, tz = tz))
 }
 
 get_deployment_source <- function() {

@@ -120,19 +120,34 @@ test_that("get_deployment is unknown without any source", {
   expect_equal(source_of(), unknown)
 })
 
-test_that("get_deployment has both times, in the time zone of R by default", {
+test_that("get_deployment has all times, in the current time zone by default", {
   local_sources()
   withr::local_timezone("Asia/Tokyo")
   before <- Sys.time()
-  info <- get_deployment()
+  info <- get_deployment(app_started = before)
+  expect_lt(info$process_started, before)
+  expect_equal(as.numeric(info$app_started), as.numeric(before))
   expect_gte(info$session_started, before)
-  expect_lt(info$app_started, before)
-  expect_match(format(info$session_started, usetz = TRUE), " JST$")
-  expect_match(format(info$app_started, usetz = TRUE), " JST$")
-  expect_match(
-    format(get_deployment(tz = "UTC")$app_started, usetz = TRUE),
-    " UTC$"
-  )
+  times <- c("process_started", "app_started", "session_started")
+  for (time in times) {
+    expect_match(format(info[[time]], usetz = TRUE), " JST$")
+    expect_match(format(get_deployment("UTC")[[time]], usetz = TRUE), " UTC$")
+  }
+})
+
+test_that("show_deployment_details fixes the app time when it is called", {
+  local_sources()
+  render_time <- function(details, label) {
+    html <- htmltools::renderTags(details)$html
+    pattern <- paste0(label, "</dt>\\s*<dd>([^<]+)</dd>")
+    regmatches(html, regexec(pattern, html))[[1]][[2]]
+  }
+  details <- show_deployment_details()
+  app <- render_time(details, "App started")
+  session <- render_time(details, "Session started")
+  Sys.sleep(1.1)
+  expect_equal(render_time(details, "App started"), app)
+  expect_false(render_time(details, "Session started") == session)
 })
 
 test_that("show_deployment_details renders the abbreviated commit", {
@@ -178,7 +193,9 @@ test_that("hovering over the ref in the navbar shows the details", {
   )
   driver$wait_for_js("document.querySelector('.popover') !== null")
   expect_match(driver$get_text(".popover"), "0123456")
+  expect_match(driver$get_text(".popover"), "R process started")
   expect_match(driver$get_text(".popover"), "App started")
+  expect_match(driver$get_text(".popover"), "Session started")
 })
 
 test_that("each page load has its own session time, but the same app time", {
