@@ -13,8 +13,7 @@ named in their logs.
 
 Check your work locally, from fastest to strictest:
 
-1. While you work, run the narrowest task that covers the change,
-   e.g. `nk r-test`.
+1. While you work, run the narrowest task that covers the change.
 1. Before you report a change as done, run `nk all`, then `nk flake-check`,
    and fix what fails.
    `nk all` formats, builds and runs every check in the working tree.

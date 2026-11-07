@@ -94,12 +94,12 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1791353474,
-        "narHash": "sha256-v72qr4LsSz61tQki/41nHKZKPY6NSeZavtGlAInOCng=",
-        "rev": "2efa67fd26b6df417c33e4603185c701f260dd83",
-        "revCount": 1015818,
+        "lastModified": 1793633738,
+        "narHash": "sha256-tItrb9M8eYA6WhFgmT9tpGKueri3+wRuVA952o/2xSU=",
+        "rev": "7dcdd87373d72e7a2173e4db02e20d3d7f495cfd",
+        "revCount": 1017737,
         "type": "tarball",
-        "url": "https://api.flakehub.com/f/pinned/NixOS/nixpkgs/0.2605.1015818%2Brev-2efa67fd26b6df417c33e4603185c701f260dd83/01a11777-646c-7ac3-9a38-941658c52e27/source.tar.gz"
+        "url": "https://api.flakehub.com/f/pinned/NixOS/nixpkgs/0.2605.1017737%2Brev-7dcdd87373d72e7a2173e4db02e20d3d7f495cfd/01a19fe9-5ace-72d3-9f41-cd64567df3e3/source.tar.gz"
       },
       "original": {
         "type": "tarball",
@@ -116,18 +116,21 @@
           "nixpkgs"
         ],
         "process-compose-flake": "process-compose-flake",
+        "pyproject-build-systems": "pyproject-build-systems",
+        "pyproject-nix": "pyproject-nix",
         "terraform-providers-bin": "terraform-providers-bin",
         "terranix": "terranix",
         "treefmt-nix": "treefmt-nix",
-        "up": "up"
+        "up": "up",
+        "uv2nix": "uv2nix"
       },
       "locked": {
-        "lastModified": 1794000798,
-        "narHash": "sha256-Bp4XAThoFEZtthFpAzy0ZKxWiRZrUyOjGg55SS13vLc=",
-        "rev": "77ee93b09700e199a47bd55c3d2509e08579603f",
-        "revCount": 723,
+        "lastModified": 1794011448,
+        "narHash": "sha256-8MP01dXSn8fiAGmYFUWpsHmPqe1DbG4T6YXEHkwtjGo=",
+        "rev": "49c3ef963547601bf26e4246fb9fc0107aa6cab7",
+        "revCount": 769,
         "type": "tarball",
-        "url": "https://api.flakehub.com/f/pinned/dataheld/nullkomma/0.1.723%2Brev-77ee93b09700e199a47bd55c3d2509e08579603f/01a1b2d0-e8b0-7b73-b32a-b252ecdd4cfb/source.tar.gz"
+        "url": "https://api.flakehub.com/f/pinned/dataheld/nullkomma/0.1.769%2Brev-49c3ef963547601bf26e4246fb9fc0107aa6cab7/01a1b370-93f2-7f51-8aa7-fc52493c1df7/source.tar.gz"
       },
       "original": {
         "type": "tarball",
@@ -163,6 +166,56 @@
       "original": {
         "owner": "Platonic-Systems",
         "repo": "process-compose-flake",
+        "type": "github"
+      }
+    },
+    "pyproject-build-systems": {
+      "inputs": {
+        "nixpkgs": [
+          "nullkomma",
+          "nixpkgs"
+        ],
+        "pyproject-nix": [
+          "nullkomma",
+          "pyproject-nix"
+        ],
+        "uv2nix": [
+          "nullkomma",
+          "uv2nix"
+        ]
+      },
+      "locked": {
+        "lastModified": 1793820911,
+        "narHash": "sha256-cc2EX2rfojnhcvqPQh4JEFGm2Mn/VoJyw5hTJTaw7Wo=",
+        "owner": "pyproject-nix",
+        "repo": "build-system-pkgs",
+        "rev": "947b2b0c973de462b19577715f04ba8d6f48ed7e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "pyproject-nix",
+        "repo": "build-system-pkgs",
+        "type": "github"
+      }
+    },
+    "pyproject-nix": {
+      "inputs": {
+        "nixpkgs": [
+          "nullkomma",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1793820880,
+        "narHash": "sha256-NUMabnvaL/0Ah9WM9pBMXEp+dQjMSYjezZ/fNjXouLQ=",
+        "owner": "pyproject-nix",
+        "repo": "pyproject.nix",
+        "rev": "d43f0e74444c1f266c640fc49ce6ce6fb69d33c3",
+        "type": "github"
+      },
+      "original": {
+        "owner": "pyproject-nix",
+        "repo": "pyproject.nix",
         "type": "github"
       }
     },
@@ -276,6 +329,31 @@
       "original": {
         "type": "tarball",
         "url": "https://flakehub.com/f/DeterminateSystems/up/0.1.%2A"
+      }
+    },
+    "uv2nix": {
+      "inputs": {
+        "nixpkgs": [
+          "nullkomma",
+          "nixpkgs"
+        ],
+        "pyproject-nix": [
+          "nullkomma",
+          "pyproject-nix"
+        ]
+      },
+      "locked": {
+        "lastModified": 1793272761,
+        "narHash": "sha256-3CE1CEwprYlHRlRVkXDkhqec0jjF9Cti7tdk8vVDsCM=",
+        "owner": "pyproject-nix",
+        "repo": "uv2nix",
+        "rev": "c361746c7d630d98b972378290547c8d35542a7a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "pyproject-nix",
+        "repo": "uv2nix",
+        "type": "github"
       }
     }
   },
