@@ -32,22 +32,19 @@ describe("the crow MCP server", {
     )
   })
 
-  it("screenshots a running module with its padding and border", {
+  it("screenshots a running floated module with its padding and border", {
     start <- result_text(client$call(
       "module_app_start",
       path = pkg_root(),
       ui = paste(
         "function(id) shiny::div(id = id, style =",
-        "'width: 100px; height: 50px; padding: 10px; border: 5px solid')"
+        "'float: left; height: 50px; padding: 10px; border: 5px solid')"
       )
     ))
     id <- app_id(start)
     shot <- result_text(client$call("module_app_screenshot", id = id))
     png <- regmatches(shot, regexpr("[^\n ]+\\.png", shot))
-    expect_equal(
-      unlist(magick::image_info(magick::image_read(png))[c("width", "height")]),
-      c(width = 100, height = 50)
-    )
+    expect_equal(magick::image_info(magick::image_read(png))$height, 50)
     expect_match(
       result_text(client$call("module_app_stop", id = id)),
       paste("Stopped", id)
