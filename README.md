@@ -20,10 +20,6 @@ crow is:
 
 - **Opinionated on quality**:
   shiny apps and modules should be exported functions in an R package.
-  crow adds helpers that you call, not generated code to maintain.
-  The agent skill's starter module and the
-  [`deploy_info`](https://crow.maxheld.de/reference/deploy_info.html) module,
-  which you copy into your package, are the exceptions.
 - **Flexible in implementation**:
   crow is not a framework.
   Use only the helpers that you need.
