@@ -22,7 +22,7 @@
 #' If you already have other arguments specified for Roxygen,
 #' just add `packages` list element.
 #'
-#' @family screenshot
+#' @family documentation
 #'
 #' @name tag_shiny
 NULL
@@ -107,7 +107,7 @@ check_installed_roxygen2 <- function() {
 #' \dontrun{
 #' get_screenshot_from_app(examples_app())
 #' }
-#' @family screenshot
+#' @family documentation
 #' @export
 get_screenshot_from_app <- function(
   appDir,
@@ -237,7 +237,7 @@ format.rd_section_crowInsertSnaps <- function(x, ...) {
 #' [testthat](https://testthat.r-lib.org)'s `_snaps/` directory.
 #' If several files match `dir_ls_snaps()`,
 #' they are merged into an animated gif.
-#' @family screenshot
+#' @family documentation
 #' @name get_screenshot_from_snaps
 NULL
 
@@ -378,7 +378,7 @@ dir_ls_snaps <- function(
 #' You may need to set `FALSE`
 #' if you pass a name to`shinytest2::AppDriver$expect_snapshot()`
 #' directly.
-#' @family screenshot
+#' @family documentation
 #' @export
 glue_regexp_snaps <- function(name = NULL, auto_numbered = TRUE) {
   checkmate::assert_string(name, null.ok = TRUE)

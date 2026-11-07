@@ -708,7 +708,7 @@ x_counter_button_server <- function(id, set_to = 2L, deep = FALSE) {
 #' @inheritParams shiny::runApp
 #' @export
 #' @family modules
-#' @family screenshot
+#' @family documentation
 #' @family shinytest2
 get_screenshot_args_attr <- function(appDir) {
   if (has_crow_attrs(appDir)) {
