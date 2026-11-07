@@ -182,12 +182,12 @@ test_that("deploy_info UIs hold the namespaced outputs", {
 test_that("the standalone file does not need the rest of crow", {
   path <- test_path("..", "..", "R", "standalone-deploy_info.R")
   skip_if_not(file.exists(path))
-  local_ci()
+  local_ci(GITHUB_SHA = "abc", GITHUB_REF_NAME = "main")
   vendored <- new.env(parent = baseenv())
   sys.source(path, envir = vendored)
-  expect_equal(vendored$deploy_info(env = "abc:main")$ref, "main")
+  expect_equal(vendored$deploy_info(env = "def:feature")$ref, "feature")
   expect_s3_class(vendored$deploy_info_ui("x"), "shiny.tag")
-  expect_equal(vendored$deploy_info_set_env(), "NA:NA")
+  expect_equal(vendored$deploy_info_set_env(), "abc:main")
 })
 
 test_that("hovering over the ref in the navbar shows the details", {
