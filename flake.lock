@@ -125,12 +125,12 @@
         "uv2nix": "uv2nix"
       },
       "locked": {
-        "lastModified": 1794011448,
-        "narHash": "sha256-8MP01dXSn8fiAGmYFUWpsHmPqe1DbG4T6YXEHkwtjGo=",
-        "rev": "49c3ef963547601bf26e4246fb9fc0107aa6cab7",
-        "revCount": 769,
+        "lastModified": 1794059693,
+        "narHash": "sha256-AtSQH2SWYXk7yIMpgDCLvuyEYOrPvn193hB9MCPnTxk=",
+        "rev": "9366492454a8af247f2dff1fd32d229dd65290a9",
+        "revCount": 771,
         "type": "tarball",
-        "url": "https://api.flakehub.com/f/pinned/dataheld/nullkomma/0.1.769%2Brev-49c3ef963547601bf26e4246fb9fc0107aa6cab7/01a1b370-93f2-7f51-8aa7-fc52493c1df7/source.tar.gz"
+        "url": "https://api.flakehub.com/f/pinned/dataheld/nullkomma/0.1.771%2Brev-9366492454a8af247f2dff1fd32d229dd65290a9/01a1b653-5043-7321-a0dc-8582266a0feb/source.tar.gz"
       },
       "original": {
         "type": "tarball",
