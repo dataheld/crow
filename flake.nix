@@ -58,6 +58,7 @@
               ];
             };
             # Chromium 157 needs fontconfig's family aliases to find Liberation.
+            # Remove in https://github.com/dataheld/nullkomma/issues/372.
             nullkomma.r.browser = lib.mkIf pkgs.stdenv.isLinux (
               pkgs.writeShellApplication {
                 name = "r-chromium-with-fonts";
