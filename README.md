@@ -28,9 +28,6 @@ crow is:
 - **Lightweight**:
   crow is for development.
   Your app needs shiny, not crow.
-  The one exception is `deploy_info()`,
-  which runs in your deployed app:
-  it brings all of crow's dependencies with it.
 
 If you want a framework or a generated app structure,
 use [rhino](https://appsilon.github.io/rhino/),
@@ -44,8 +41,7 @@ or [leprechaun](https://leprechaun.opifex.org/).
 pak::pak("dataheld/crow")
 ```
 
-Do not add crow to `Imports:` in your `DESCRIPTION`,
-unless your app calls `deploy_info()`.
+Do not add crow to `Imports:` in your `DESCRIPTION`.
 If your tests or testbed apps call crow,
 add it to `Suggests:`.
 
