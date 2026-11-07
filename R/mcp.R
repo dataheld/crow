@@ -435,8 +435,10 @@ child_call <- function(fun, args, path = NULL) {
 app_start_child <- function(app) {
   factory <- rlang::new_function(NULL, app, asNamespace(pkgload::pkg_name()))
   lifetime <- new.env()
+  # Below the 120 s of app_run(), so that shinytest2 reports why a start failed.
   driver <- local_app_driver(
     factory,
+    load_timeout = 90 * 1000,
     options = list(shiny.reactlog = TRUE),
     .local_envir = lifetime
   )
