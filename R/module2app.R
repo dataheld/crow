@@ -514,8 +514,14 @@ unbrowsable <- function(x) {
   purrr::modify_tree(
     x,
     is_node = rlang::is_bare_list,
-    leaf = \(x) htmltools::browsable(x, value = FALSE)
+    leaf = \(x) htmltools::browsable(widget_as_tags(x), value = FALSE)
   )
+}
+
+#' The print method of a widget ignores the browsable mark and prints no text
+#' @noRd
+widget_as_tags <- function(x) {
+  if (inherits(x, "htmlwidget")) htmltools::as.tags(x) else x
 }
 
 exec_tree_of_reacs <- function(x) {
@@ -702,7 +708,7 @@ x_counter_button_server <- function(id, set_to = 2L, deep = FALSE) {
 #' @inheritParams shiny::runApp
 #' @export
 #' @family modules
-#' @family screenshot
+#' @family documentation
 #' @family shinytest2
 get_screenshot_args_attr <- function(appDir) {
   if (has_crow_attrs(appDir)) {

@@ -50,6 +50,7 @@ Suggests:
     bsicons,
     bslib,
     brio,
+    htmlwidgets,
     processx,
     ps,
     roxygen2

@@ -6,10 +6,10 @@ template:
   bootstrap: 5
   bootswatch: cosmo
 reference:
-  - title: Screenshots
-    desc: Improving documentation with screenshots from shiny apps and modules.
+  - title: Documentation
+    desc: Improving documentation with screenshots and embeds of shiny apps.
   - contents:
-      - has_concept("screenshot")
+      - has_concept("documentation")
   - title: Modules
     desc: Helpers around working with shiny modules.
   - contents:

@@ -1,0 +1,18 @@
+.shiny-embed-pkgdown {
+  margin-top: 56px;
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  right: 0;
+}
+/* would otherwise show through the app */
+.page-header,
+footer {
+  visibility: hidden;
+}
+.shiny-embed-pkgdown iframe {
+  border: none;
+  height: 100%;
+  width: 100%;
+}
