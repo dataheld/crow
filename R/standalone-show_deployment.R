@@ -1,27 +1,27 @@
 # ---
 # repo: dataheld/crow
-# file: standalone-deploy_info.R
+# file: standalone-show_deployment.R
 # license: MIT, Copyright (c) 2024 Maximilian Held
 # imports: [shiny, bslib]
 # ---
 #
-# Docs: https://crow.maxheld.de/reference/deploy_info.html
+# Docs: https://crow.maxheld.de/reference/show_deployment.html
 
-deploy_info_navbar_ui <- function(id) {
+show_deployment_navbar_ui <- function(id) {
   ns <- shiny::NS(id)
   bslib::popover(
     shiny::tags$small(
       class = "nav-text text-muted ms-2 me-auto",
       shiny::textOutput(ns("label"), inline = TRUE)
     ),
-    deploy_info_ui(id),
+    show_deployment_ui(id),
     title = "Deployment",
     placement = "bottom",
     options = list(trigger = "hover focus")
   )
 }
 
-deploy_info_ui <- function(id) {
+show_deployment_ui <- function(id) {
   ns <- shiny::NS(id)
   item <- function(label, output) {
     shiny::tagList(
@@ -38,8 +38,8 @@ deploy_info_ui <- function(id) {
   )
 }
 
-deploy_info_server <- function(id, ...) {
-  info <- deploy_info(...)
+show_deployment_server <- function(id, ...) {
+  info <- get_deployment(...)
   shiny::moduleServer(
     id,
     function(input, output, session) {
@@ -57,12 +57,16 @@ deploy_info_server <- function(id, ...) {
   )
 }
 
-deploy_info <- function(
-  env = Sys.getenv("DEPLOY_INFO"),
+get_deployment <- function(
+  env = Sys.getenv("DEPLOYMENT_SOURCE"),
   tz = "Europe/Berlin"
 ) {
   stopifnot(tz %in% OlsonNames())
-  scm <- if (nzchar(env)) deploy_info_parse(env) else deploy_info_scm()
+  scm <- if (nzchar(env)) {
+    parse_deployment_source(env)
+  } else {
+    detect_deployment_source()
+  }
   now <- Sys.time()
   c(
     scm,
@@ -74,35 +78,40 @@ deploy_info <- function(
   )
 }
 
-deploy_info_set_env <- function() {
-  value <- paste(deploy_info_scm(), collapse = ":")
-  Sys.setenv(DEPLOY_INFO = value)
+set_deployment_envvar <- function() {
+  value <- paste(detect_deployment_source(), collapse = ":")
+  Sys.setenv(DEPLOYMENT_SOURCE = value)
   invisible(value)
 }
 
-deploy_info_parse <- function(env) {
+parse_deployment_source <- function(env) {
   # Git forbids colons in ref names.
   parts <- strsplit(env, ":", fixed = TRUE)[[1]][1:2]
   parts[parts %in% "NA"] <- NA_character_
   list(sha = parts[[1]], ref = parts[[2]])
 }
 
-deploy_info_scm <- function() {
+detect_deployment_source <- function() {
   scm <- list(
-    sha = deploy_info_first_set(c("GITHUB_SHA", "CI_COMMIT_SHA")),
-    ref = deploy_info_first_set(
-      c("GITHUB_HEAD_REF", "GITHUB_REF_NAME", "CI_COMMIT_REF_NAME")
+    sha = get_first_envvar(c("GITHUB_SHA", "CI_COMMIT_SHA")),
+    ref = get_first_envvar(
+      c(
+        "GITHUB_HEAD_REF",
+        "GITHUB_REF_NAME",
+        "CI_MERGE_REQUEST_SOURCE_BRANCH_NAME",
+        "CI_COMMIT_REF_NAME"
+      )
     )
   )
-  if (is.na(scm$sha)) deploy_info_git() else scm
+  if (is.na(scm$sha)) read_git_source() else scm
 }
 
-deploy_info_first_set <- function(names) {
+get_first_envvar <- function(names) {
   values <- Sys.getenv(names)
   c(values[nzchar(values)], NA_character_)[[1]]
 }
 
-deploy_info_git <- function() {
+read_git_source <- function() {
   unknown <- list(sha = NA_character_, ref = NA_character_)
   if (!nzchar(Sys.which("git"))) {
     return(unknown)

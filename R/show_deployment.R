@@ -12,13 +12,13 @@
 #' which then needs shiny and bslib:
 #'
 #' ```r
-#' usethis::use_standalone("dataheld/crow", "deploy_info")
+#' usethis::use_standalone("dataheld/crow", "show_deployment")
 #' ```
 #'
 #' Run this again to update the copy.
 #'
 #' @section Deployment:
-#' You must pass on the `DEPLOY_INFO` environment variable yourself.
+#' You must pass on the `DEPLOYMENT_SOURCE` environment variable yourself.
 #' CI variables exist only in the CI job,
 #' not on the server that runs the app,
 #' and app bundles do not contain `.git`.
@@ -28,30 +28,19 @@
 #' with no need to install your package:
 #'
 #' ```sh
-#' export DEPLOY_INFO="$(Rscript -e 'source("R/import-standalone-deploy_info.R"); cat(deploy_info_set_env())')"
+#' export DEPLOYMENT_SOURCE="$(Rscript -e 'source("R/import-standalone-show_deployment.R"); cat(set_deployment_envvar())')"
 #' ```
 #'
-#' Then, how you pass it on depends on the deployment method.
-#' For example:
-#'
-#' - Posit Connect:
-#'   `rsconnect::deployApp(envVars = "DEPLOY_INFO")`.
-#' - shinyapps.io:
-#'   `echo "DEPLOY_INFO=$DEPLOY_INFO" >> .Renviron` in the app directory,
-#'   before you deploy.
-#' - Containers:
-#'   set the variable as `ENV` in the image,
-#'   or when you start the container.
-#'
 #' @section Sources:
-#' `DEPLOY_INFO` has the form `<sha>:<ref>`.
+#' `DEPLOYMENT_SOURCE` has the form `<sha>:<ref>`.
 #' Without it, the first of these that has a commit provides `sha` and `ref`:
 #'
 #' 1. The variables of GitHub Actions (`GITHUB_SHA`,
 #'    `GITHUB_HEAD_REF`, `GITHUB_REF_NAME`)
-#'    or GitLab CI (`CI_COMMIT_SHA`, `CI_COMMIT_REF_NAME`).
-#'    On GitHub pull requests,
-#'    `GITHUB_SHA` is the merge commit that the job checked out,
+#'    or GitLab CI/CD (`CI_COMMIT_SHA`,
+#'    `CI_MERGE_REQUEST_SOURCE_BRANCH_NAME`, `CI_COMMIT_REF_NAME`).
+#'    On pull requests and merged results pipelines,
+#'    the commit is the merge commit that the job checked out,
 #'    not the last commit of the branch.
 #' 1. `git` in the working directory, if the working tree is clean.
 #'    Otherwise, the commit does not describe the running code.
@@ -68,67 +57,70 @@
 #' Servers that run several processes for an app have one time for each.
 #'
 #' @section Functions:
-#' - `deploy_info_navbar_ui()`:
+#' - `show_deployment_navbar_ui()`:
 #'   Module UI as a label with a [bslib::popover()].
 #'   Pass it to the `title` of [bslib::page_navbar()],
-#'   as in `deploy_info_app()`.
+#'   as in `show_deployment_app()`.
 #'   This needs Bootstrap 5.
-#' - `deploy_info_ui()`:
+#' - `show_deployment_ui()`:
 #'   Module UI as a plain definition list, for any other UI.
-#' - `deploy_info_server()`:
+#' - `show_deployment_server()`:
 #'   Module server.
-#'   Returns a reactive of the `deploy_info()` of the session.
+#'   Returns a reactive of the `get_deployment()` of the session.
 #'   Shows the abbreviated commit.
-#' - `deploy_info()`:
+#' - `get_deployment()`:
 #'   A list of the full commit `sha`, the `ref`,
 #'   `app_started`, and `session_started`, the time of the call.
 #'   `sha` and `ref` are `NA` if unknown.
-#' - `deploy_info_set_env()`:
-#'   Sets `DEPLOY_INFO` in this R process from the sources,
+#' - `set_deployment_envvar()`:
+#'   Sets `DEPLOYMENT_SOURCE` in this R process from the sources,
 #'   and returns its value invisibly.
-#' - `deploy_info_app()`:
+#' - `show_deployment_app()`:
 #'   Example app.
 #'   It is not part of the copy in your package.
 #'
 #' @param id
 #' The module ID.
 #' @param ...
-#' For `deploy_info_server()`, arguments passed on to `deploy_info()`.
-#' For `deploy_info_app()`, arguments passed on to [shiny::shinyApp()].
+#' For `show_deployment_server()`, arguments passed on to `get_deployment()`.
+#' For `show_deployment_app()`, arguments passed on to [shiny::shinyApp()].
 #' @param env
-#' The value of `DEPLOY_INFO`, if you do not want to read the variable.
+#' The value of `DEPLOYMENT_SOURCE`, if you do not want to read the variable.
 #' @param tz
 #' A timezone from [OlsonNames()] for the times.
 #'
 #' @usage
-#' deploy_info_navbar_ui(id)
-#' deploy_info_ui(id)
-#' deploy_info_server(id, ...)
-#' deploy_info(env = Sys.getenv("DEPLOY_INFO"), tz = "Europe/Berlin")
-#' deploy_info_set_env()
-#' @aliases deploy_info_navbar_ui deploy_info_ui deploy_info_server
-#' @aliases deploy_info_set_env
-#' @export deploy_info_navbar_ui
-#' @export deploy_info_ui
-#' @export deploy_info_server
-#' @export deploy_info
-#' @export deploy_info_set_env
+#' show_deployment_navbar_ui(id)
+#' show_deployment_ui(id)
+#' show_deployment_server(id, ...)
+#' get_deployment(env = Sys.getenv("DEPLOYMENT_SOURCE"), tz = "Europe/Berlin")
+#' set_deployment_envvar()
+#' @aliases show_deployment_navbar_ui show_deployment_ui
+#' @aliases show_deployment_server get_deployment set_deployment_envvar
+#' @export show_deployment_navbar_ui
+#' @export show_deployment_ui
+#' @export show_deployment_server
+#' @export get_deployment
+#' @export set_deployment_envvar
 #' @family deployment
-#' @name deploy_info
+#' @name show_deployment
 #' @examplesIf interactive()
-#' deploy_info_app()
+#' show_deployment_app()
 NULL
 
-#' @rdname deploy_info
+#' @rdname show_deployment
 #' @export
-deploy_info_app <- function(...) {
+show_deployment_app <- function(...) {
   shiny::shinyApp(
     ui = bslib::page_navbar(
-      title = shiny::tagList("crow", deploy_info_navbar_ui("deploy_info")),
+      title = shiny::tagList(
+        "crow",
+        show_deployment_navbar_ui("show_deployment")
+      ),
       bslib::nav_panel("Example", "Hover over the ref in the navbar.")
     ),
     server = function(input, output, session) {
-      deploy_info_server("deploy_info")
+      show_deployment_server("show_deployment")
     },
     ...
   )
