@@ -9,7 +9,7 @@ source_pef <- function(...) {
 #' @crowExamplesShiny
 #' examples_app()
 #' @inheritParams shiny::runExample
-#' @family screenshot
+#' @family documentation
 #' @keywords internal
 #' @export
 examples_app <- function(example = "01_hello") {
