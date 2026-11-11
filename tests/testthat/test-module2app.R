@@ -145,7 +145,7 @@ test_that("works with bs5", {
   )
 })
 correct_attr <- list(
-  selector = paste0("#", inner_module_id, " > *"),
+  selector = sprintf("#%1$s, #%1$s > *", inner_module_id),
   region = "border"
 )
 test_that("returns attribute with dom selector", {
@@ -219,36 +219,48 @@ describe("module2app_bare", {
     expect_snapshot(cat(returns$unevaluated))
     expect_snapshot(cat(returns$evaluated))
   })
-  it("screenshots the module with its padding and border", {
+  screenshot_size <- function(driver) {
     path <- withr::local_tempfile(fileext = ".png")
+    driver$get_screenshot(file = path)
+    unlist(magick::image_info(magick::image_read(path))[c("width", "height")])
+  }
+  it("screenshots floated modules with their padding and border", {
     driver <- local_app_driver(shinytest2_app_fn(module2app_bare(
       function(id) {
         shiny::div(
           id = id,
-          style = "width: 100px; height: 50px; padding: 10px; border: 5px solid"
+          style = "float: left; height: 50px; padding: 10px; border: 5px solid"
         )
       }
     )))
-    driver$get_screenshot(file = path)
-    expect_equal(
-      unlist(magick::image_info(magick::image_read(path))[c(
-        "width",
-        "height"
-      )]),
-      c(width = 100, height = 50)
-    )
+    expect_equal(screenshot_size(driver)[["height"]], 50)
+  })
+  it("screenshots modules whose top-level elements have no box", {
+    skip_if_not_installed("bslib")
+    # bslib themes give a filled uiOutput() `display: contents`
+    for (wrapper in rlang::exprs(shiny::basicPage, bslib::page_fluid)) {
+      driver <- local_app_driver(shinytest2_app_fn(module2app_bare(
+        function(id) shiny::uiOutput(shiny::NS(id, "out")),
+        function(id) {
+          shiny::moduleServer(id, function(input, output, session) {
+            output$out <- shiny::renderUI(shiny::div(style = "height: 50px"))
+          })
+        },
+        ui_wrapper = !!wrapper
+      )))
+      expect_equal(
+        screenshot_size(driver)[["height"]],
+        50,
+        info = rlang::as_label(wrapper)
+      )
+    }
   })
   it("screenshots the same module as module2app", {
-    screenshot_info <- function(app) {
-      path <- withr::local_tempfile(fileext = ".png")
-      local_app_driver(app)$get_screenshot(file = path)
-      magick::image_info(magick::image_read(path))[c("width", "height")]
-    }
     expect_equal(
-      screenshot_info(shinytest2_app_fn(
+      screenshot_size(local_app_driver(shinytest2_app_fn(
         module2app_bare(counter_button_ui, counter_button_server)
-      )),
-      screenshot_info(counter_button_app)
+      ))),
+      screenshot_size(local_app_driver(counter_button_app))
     )
   })
 })

@@ -22,10 +22,11 @@ new_testbed <- function(testbed_ui, testbed_server) {
       attributes(res),
       list(
         crow_screenshot_args = list(
-          # need to select down to child
-          # because only that actually has a height
-          # the parent div may not, and will then fail the screenshot
-          selector = paste0("#", inner_module_id, " > *"),
+          # chromote screenshots the union of the selected boxes.
+          # The container has a box,
+          # even if the module's elements have none (`display: contents`),
+          # but its height excludes floated elements.
+          selector = sprintf("#%1$s, #%1$s > *", inner_module_id),
           # chromote crops to the content box by default,
           # cutting off padding and borders
           region = "border"
