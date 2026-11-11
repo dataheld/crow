@@ -74,7 +74,7 @@ mount_server <- function(
       res = res
     )
     shiny::exportTestValues(
-      res = fix_test_returns(res),
+      res = exec_tree_of_reacs(res),
       server_args = tree_text(server_args, effective_args),
       returns = tree_text(res),
       reactlog = session_reactlog(shiny::reactlog(), session$token)
@@ -300,7 +300,8 @@ module2app_bare_server <- function(
 #' Both testbeds mount the module with the ID `test_object`
 #' and export these values for [`shinytest2::AppDriver`]'s `$get_value()`:
 #' - `res`: the return value of the module server,
-#'   called if it is a reactive.
+#'   with its reactives replaced by their values,
+#'   as in the evaluated tree (see [mixed_react_tree()]).
 #' - `server_args`, `returns`:
 #'   the server arguments and the return values,
 #'   each a list of the `unevaluated` and `evaluated` tree,
@@ -368,16 +369,6 @@ module2app_bare <- new_testbed(
   module2app_bare_server
 )
 
-#' Need to protect against non-reactive values
-#' @noRd
-fix_test_returns <- function(x) {
-  if (shiny::is.reactive(x)) {
-    x()
-  } else {
-    x
-  }
-}
-
 no_fun_provided_ui <- function(id, x = "ui") {
   shiny::NS(id) # unused
   shiny::tagList(
@@ -409,10 +400,13 @@ no_fun_provided_glue <- function(x) glue::glue("No {x} function provided.")
 
 #' Show Tree of Mixed Reactive Values
 #'
-#' To evaluate the (reactive) values,
-#' the function walks down the tree of return values
-#' and `rlang::exec()`s all the `shiny::is.reactive()`s it can find,
-#' going until it hits a non-list (`is.list()`) that is also *not* a reactive.
+#' To evaluate the tree,
+#' the function walks down bare lists ([rlang::is_bare_list()])
+#' and replaces each [shiny::is.reactive()] by its value,
+#' walking down that value in turn.
+#' Everything else is a leaf, printed by its own `print()` method:
+#' reactives inside a leaf, such as a classed list, stay unevaluated.
+#' Printing never opens the viewer or a browser.
 #'
 #' @section Changes to the Reactive Graph:
 #' Note that because this module prints *all* returned reactives from the
@@ -421,11 +415,6 @@ no_fun_provided_glue <- function(x) glue::glue("No {x} function provided.")
 #' For example,
 #' these reactives might be invalidated at a different time in your use
 #' of your modules outside of this testbed.
-#'
-#' @section Bugs:
-#' The display currently includes a workaround for this (likely upstream) bug:
-#' The content of reactive gets [unclass()]ed
-#' before display ([#40](https://github.com/dataheld/crow/issues/40)).
 #'
 #' @details
 #' In the simplest case,
@@ -483,9 +472,9 @@ tree_server <- function(id, tree, evaluated = tree) {
   shiny::moduleServer(
     id = id,
     function(input, output, session) {
-      output$unev <- shiny::renderPrint(unbrowsable(tree))
+      output$unev <- shiny::renderPrint(writeLines(print_text(tree)))
       output$eval <- shiny::renderPrint(
-        unbrowsable(exec_tree_of_reacs(evaluated))
+        writeLines(print_text(exec_tree_of_reacs(evaluated)))
       )
     }
   )
@@ -500,12 +489,21 @@ tree_text <- function(tree, evaluated = tree) {
   ))
 }
 
+#' Prints without the viewer or a browser
+#'
+#' Print methods with a `view` argument,
+#' such as those of htmlwidgets and gt tables,
+#' would open them over the running app.
+#' @noRd
 print_text <- function(x) {
+  withr::local_options(viewer = no_view, browser = no_view)
   # like shiny::renderPrint(), which drops the final newline
   sub("\n$", "", paste(utils::capture.output(unbrowsable(x)), collapse = "\n"))
 }
 
-#' Keeps `print()` from opening the Viewer over the running app
+no_view <- function(...) invisible(NULL)
+
+#' Print browsable leaves as text, instead of nothing
 #'
 #' Only bare lists are nodes:
 #' the elements of a classed list, such as `POSIXlt`,
@@ -525,25 +523,14 @@ widget_as_tags <- function(x) {
   if (inherits(x, "htmlwidget")) htmltools::as.tags(x) else x
 }
 
+#' Only bare lists are nodes, as in `unbrowsable()`
+#' @noRd
 exec_tree_of_reacs <- function(x) {
-  purrr::modify_tree(
-    x,
-    is_node = is_list_or_reactive,
-    pre = exec_if_reactive
-  )
-}
-
-is_list_or_reactive <- function(x) {
-  is.list(x) || shiny::is.reactive(x)
+  purrr::modify_tree(x, is_node = rlang::is_bare_list, leaf = exec_if_reactive)
 }
 
 exec_if_reactive <- function(x) {
-  if (shiny::is.reactive(x)) {
-    x <- rlang::exec(x)
-    # TODO remove this workaround for https://github.com/dataheld/crow/issues/40
-    x <- unclass(x)
-  }
-  x
+  if (shiny::is.reactive(x)) exec_tree_of_reacs(x()) else x
 }
 
 # test modules =====

@@ -219,6 +219,23 @@ describe("module2app_bare", {
     expect_snapshot(cat(returns$unevaluated))
     expect_snapshot(cat(returns$evaluated))
   })
+  it("exports the return value with its reactives evaluated", {
+    driver <- local_app_driver(shinytest2_app_fn(module2app_bare(
+      module_server = function(id) {
+        shiny::moduleServer(id, function(input, output, session) {
+          list(
+            flag = shiny::reactive(TRUE),
+            data = shiny::reactive(data.frame(a = 1L)),
+            nested = list(shiny::reactive(list(n = shiny::reactive(1L))))
+          )
+        })
+      }
+    )))
+    expect_equal(
+      driver$get_value(export = "res"),
+      list(flag = TRUE, data = data.frame(a = 1L), nested = list(list(n = 1L)))
+    )
+  })
   screenshot_size <- function(driver) {
     path <- withr::local_tempfile(fileext = ".png")
     driver$get_screenshot(file = path)
@@ -288,9 +305,31 @@ widget_html <- as.character(htmltools::as.tags(widget))
 local_failing_viewer <- function(.local_envir = parent.frame()) {
   withr::local_options(
     viewer = \(url, ...) stop("Viewer called."),
+    browser = \(url, ...) stop("Browser called."),
     .local_envir = .local_envir
   )
 }
+
+#' Like `print.htmlwidget(view = TRUE)` and `print.gt_tbl(view = TRUE)`,
+#' which call the viewer only in interactive sessions
+local_viewing_print <- function(.local_envir = parent.frame()) {
+  testthat::local_mocked_s3_method(
+    "print",
+    "crow_viewing",
+    function(x, ...) {
+      getOption("viewer", utils::browseURL)("index.html")
+      utils::browseURL("index.html")
+    },
+    frame = .local_envir
+  )
+}
+
+viewing <- structure(list(), class = "crow_viewing")
+viewing_tree <- list(
+  viewing,
+  structure(list(viewing), class = "crow_wrapper"),
+  shiny::reactive(viewing)
+)
 
 describe("tree_text", {
   it("prints flat returns", {
@@ -356,6 +395,33 @@ describe("tree_text", {
   it("prints classed lists without walking them", {
     time <- as.POSIXlt("2026-01-01", tz = "UTC")
     expect_equal(print_text(list(time)), "[[1]]\n[1] \"2026-01-01 UTC\"")
+    expect_equal(
+      tree_text(list(time, shiny::reactive(time)))$evaluated,
+      print_text(list(time, time))
+    )
+  })
+  it("prints environments, such as R6 objects, as leaves", {
+    env <- new.env()
+    handle <- structure(new.env(), class = "handle")
+    expect_equal(
+      tree_text(list(shiny::reactive(env), shiny::reactive(handle)))$evaluated,
+      print_text(list(env, handle))
+    )
+  })
+  it("keeps the class of reactive values", {
+    expect_equal(
+      tree_text(shiny::reactive(factor("a")))$evaluated,
+      "[1] a\nLevels: a"
+    )
+    expect_equal(
+      tree_text(shiny::reactive(htmltools::HTML("<b></b>")))$evaluated,
+      "<b></b>"
+    )
+  })
+  it("calls neither the viewer nor the browser from any print method", {
+    local_failing_viewer()
+    local_viewing_print()
+    expect_no_error(tree_text(viewing_tree))
   })
 })
 
@@ -368,6 +434,18 @@ describe("mixed_react_tree_server", {
       expr = {
         expect_equal(output$unev, "$a\n<p></p>")
         expect_equal(output$eval, "$a\n<p></p>")
+      }
+    )
+  })
+  it("calls neither the viewer nor the browser from any print method", {
+    local_failing_viewer()
+    local_viewing_print()
+    shiny::testServer(
+      mixed_react_tree_server,
+      args = list(tree = viewing_tree),
+      expr = {
+        expect_no_error(output$unev)
+        expect_no_error(output$eval)
       }
     )
   })

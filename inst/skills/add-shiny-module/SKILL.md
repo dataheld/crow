@@ -96,6 +96,7 @@ and its nested parent `x_counter_button`.
 so callers can set `ui_args`, `server_args` and `ui_wrapper`.
 The testbed prints the server arguments and return values.
 It exports the return value as the shinytest2 export `res`,
+with its reactives replaced by their values,
 and the printed trees as `server_args` and `returns`.
 
 ### Docs
