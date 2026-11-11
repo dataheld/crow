@@ -1,6 +1,3 @@
-.Rproj.user
-docs/
-man/*.Rd
 !man/figures/
 man/figures/crow_screenshots/**
 !man/figures/crow_screenshots/module2app/
