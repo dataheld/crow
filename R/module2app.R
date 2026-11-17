@@ -407,11 +407,6 @@ no_fun_provided_glue <- function(x) glue::glue("No {x} function provided.")
 #' Everything else is a leaf, printed by its own `print()` method:
 #' reactives inside a leaf, such as a classed list, stay unevaluated.
 #' Printing never opens the viewer or a browser.
-#' While it prints, but not while it evaluates the reactives,
-#' it sets `options(max.print = 20)`,
-#' so print methods which use this option,
-#' such as those for vectors, lists and data frames,
-#' show only about the first 20 entries.
 #'
 #' @section Changes to the Reactive Graph:
 #' Note that because this module prints *all* returned reactives from the
