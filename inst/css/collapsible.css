@@ -1,0 +1,4 @@
+/* bootstrap 3 hides the triangle */
+.crow-collapsible > summary {
+  display: list-item;
+}

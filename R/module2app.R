@@ -153,6 +153,10 @@ backticks <- function(x) paste0("`", x, "`", collapse = ", ")
 #' @describeIn module2app
 #' UI with the module UI between the displays
 #' of server arguments and return values.
+#' It passes `ui_wrapper` four arguments:
+#' the heading, the server arguments, the module UI and the return values.
+#' A `ui_wrapper` with four parameters can arrange them,
+#' such as in sidebars.
 #' @param ui_wrapper
 #' A function to wrap the resulting [shiny::tagList()] in.
 #' Must yield a full shiny UI,
@@ -161,6 +165,7 @@ backticks <- function(x) paste0("`", x, "`", collapse = ", ")
 #' avoid depending on the wrapper and only return "vanilla" UI.
 #' @example inst/examples/module2app/ui/navbar.R
 #' @example inst/examples/module2app/ui/bootstrap.R
+#' @example inst/examples/module2app/ui/sidebars.R
 #' @export
 module2app_ui <- function(
   module_ui = NULL,
@@ -169,12 +174,25 @@ module2app_ui <- function(
 ) {
   ui_wrapper(
     shiny::h1(shiny::code("module2app"), "Testbed"),
-    shiny::h2("Server Input Arguments"),
-    mixed_react_tree_ui("inputs"),
-    shiny::h2("Module UI"),
-    module_div(module_ui, ui_args),
-    shiny::h2("Server Return Values"),
-    mixed_react_tree_ui("returns")
+    collapsible("Server Input Arguments", mixed_react_tree_ui("inputs")),
+    shiny::div(shiny::h2("Module UI"), module_div(module_ui, ui_args)),
+    collapsible("Server Return Values", mixed_react_tree_ui("returns"))
+  )
+}
+
+collapsible <- function(title, ...) {
+  shiny::tags$details(
+    class = "crow-collapsible",
+    open = NA,
+    shiny::tags$summary(class = "h2", title),
+    ...,
+    htmltools::htmlDependency(
+      name = "crow-collapsible",
+      version = utils::packageVersion("crow"),
+      src = "css",
+      package = "crow",
+      stylesheet = "collapsible.css"
+    )
   )
 }
 
@@ -216,7 +234,9 @@ display_trees <- function(server_args, effective_args, returns) {
 #' - below, the return values of the module server.
 #'
 #' It shows each as an unevaluated and an evaluated tree
-#' (see [mixed_react_tree()]).
+#' (see [mixed_react_tree()]),
+#' which collapse when you click their heading.
+#' Collapsed trees still update.
 #' You can pass reactive values as server arguments,
 #' to observe how your module reacts to them.
 #'

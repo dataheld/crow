@@ -144,6 +144,36 @@ test_that("works with bs5", {
     )
   )
 })
+describe("module2app panes", {
+  it("collapse, and keep their displays up to date", {
+    driver <- local_app_driver(counter_button_app)
+    driver$run_js(
+      "document.querySelectorAll('summary').forEach(s => s.click())"
+    )
+    # as any shown or hidden element, such as a tab, makes shiny do
+    driver$run_js("$('details').trigger('hidden')")
+    driver$click(selector = "#test_object-button")
+    expect_false(driver$get_js(
+      "document.getElementById('returns-eval').checkVisibility()"
+    ))
+    expect_equal(driver$get_value(output = "returns-eval"), "[1] 1")
+  })
+  it("can go beside the module, as with bslib sidebars", {
+    skip_if_not_installed("bslib")
+    driver <- local_app_driver(shinytest2_app_fn(module2app(
+      counter_button_ui,
+      ui_wrapper = source_pef("module2app", "ui", "sidebars")
+    )))
+    left <- function(id) {
+      driver$get_js(sprintf(
+        "document.getElementById('%s').getBoundingClientRect().left",
+        id
+      ))
+    }
+    expect_lt(left("inputs-eval"), left(inner_module_id))
+    expect_lt(left(inner_module_id), left("returns-eval"))
+  })
+})
 correct_attr <- list(
   selector = sprintf("#%1$s, #%1$s > *", inner_module_id),
   region = "border"
