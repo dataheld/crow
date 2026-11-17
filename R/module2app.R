@@ -489,14 +489,17 @@ tree_text <- function(tree, evaluated = tree) {
   ))
 }
 
-#' Prints without the viewer or a browser
+#' Prints without the viewer or a browser, and only the first entries
 #'
 #' Print methods with a `view` argument,
 #' such as those of htmlwidgets and gt tables,
 #' would open them over the running app.
+#' `x` is evaluated before the options are set,
+#' so that the module's reactives in `x` do not see them.
 #' @noRd
 print_text <- function(x) {
-  withr::local_options(viewer = no_view, browser = no_view)
+  force(x)
+  withr::local_options(viewer = no_view, browser = no_view, max.print = 20)
   # like shiny::renderPrint(), which drops the final newline
   sub("\n$", "", paste(utils::capture.output(unbrowsable(x)), collapse = "\n"))
 }
