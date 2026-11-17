@@ -163,7 +163,10 @@ describe("module2app panes", {
     skip_if_not_installed("bslib")
     for (wrapper in rlang::exprs(shiny::basicPage, bslib::page_fluid)) {
       driver <- local_app_driver(
-        shinytest2_app_fn(module2app(counter_button_ui, ui_wrapper = !!wrapper)),
+        shinytest2_app_fn(module2app(
+          counter_button_ui,
+          ui_wrapper = !!wrapper
+        )),
         width = 1280,
         height = 800
       )
