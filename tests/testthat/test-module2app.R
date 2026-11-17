@@ -453,6 +453,21 @@ describe("tree_text", {
     local_viewing_print()
     expect_no_error(tree_text(viewing_tree))
   })
+  it("prints only the first entries of long values", {
+    long <- list(data.frame(x = 1:5000), list(as.list(1:5000)))
+    text <- tree_text(long, list(shiny::reactive(long)))
+    purrr::walk(text, \(text) {
+      expect_match(text, "omitted 4980 rows", fixed = TRUE)
+      expect_match(text, "omitted 4980 entries", fixed = TRUE)
+    })
+  })
+  it("evaluates reactives without its print options", {
+    withr::local_options(max.print = 1234)
+    expect_equal(
+      tree_text(shiny::reactive(getOption("max.print")))$evaluated,
+      "[1] 1234"
+    )
+  })
 })
 
 describe("mixed_react_tree_server", {
