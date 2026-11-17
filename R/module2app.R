@@ -151,7 +151,7 @@ backticks <- function(x) paste0("`", x, "`", collapse = ", ")
 # module2app helper ====
 
 #' @describeIn module2app
-#' UI with the module UI between the collapsible panes
+#' UI with the module UI between the displays
 #' of server arguments and return values.
 #' @param ui_wrapper
 #' A function to wrap the resulting [shiny::tagList()] in.
@@ -169,35 +169,12 @@ module2app_ui <- function(
 ) {
   ui_wrapper(
     shiny::h1(shiny::code("module2app"), "Testbed"),
-    shiny::div(
-      class = "crow-testbed",
-      testbed_pane("Server Input Arguments", mixed_react_tree_ui("inputs")),
-      shiny::div(
-        class = "crow-testbed-module",
-        shiny::h2("Module UI"),
-        module_div(module_ui, ui_args)
-      ),
-      testbed_pane("Server Return Values", mixed_react_tree_ui("returns")),
-      htmltools::htmlDependency(
-        name = "crow-module2app",
-        version = utils::packageVersion("crow"),
-        src = "css",
-        package = "crow",
-        stylesheet = "module2app.css"
-      )
-    )
-  )
-}
-
-#' A native disclosure widget needs neither bootstrap nor JavaScript,
-#' and keeps shiny rendering the outputs inside while it is closed.
-#' @noRd
-testbed_pane <- function(title, ...) {
-  shiny::tags$details(
-    class = "crow-testbed-pane",
-    open = NA,
-    shiny::tags$summary(shiny::h2(title)),
-    ...
+    shiny::h2("Server Input Arguments"),
+    mixed_react_tree_ui("inputs"),
+    shiny::h2("Module UI"),
+    module_div(module_ui, ui_args),
+    shiny::h2("Server Return Values"),
+    mixed_react_tree_ui("returns")
   )
 }
 
@@ -235,18 +212,11 @@ display_trees <- function(server_args, effective_args, returns) {
 #' to develop and test the module.
 #' Around the module UI,
 #' the app shows what goes into and comes out of the module server:
-#' - left, the server arguments (`server_args`),
-#' - right, the return values of the module server.
+#' - above, the server arguments (`server_args`),
+#' - below, the return values of the module server.
 #'
 #' It shows each as an unevaluated and an evaluated tree
-#' (see [mixed_react_tree()]),
-#' in a pane that collapses when you click its heading,
-#' to give the module more width.
-#' On screens narrower than 1200 pixels,
-#' such as shinytest2's default,
-#' the panes are above and below the module,
-#' so the module has the same width as in [module2app_bare()].
-#' Collapsed panes still update their trees.
+#' (see [mixed_react_tree()]).
 #' You can pass reactive values as server arguments,
 #' to observe how your module reacts to them.
 #'

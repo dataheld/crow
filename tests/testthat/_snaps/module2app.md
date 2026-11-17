@@ -8,34 +8,22 @@
           <code>module2app</code>
           Testbed
         </h1>
-        <div class="crow-testbed">
-          <details class="crow-testbed-pane" open>
-            <summary>
-              <h2>Server Input Arguments</h2>
-            </summary>
-            <h3>Unevaluated</h3>
-            <pre class="shiny-text-output noplaceholder" id="inputs-unev"></pre>
-            <h3>Evaluated</h3>
-            <pre class="shiny-text-output noplaceholder" id="inputs-eval"></pre>
-          </details>
-          <div class="crow-testbed-module">
-            <h2>Module UI</h2>
-            <div id="crow-module2app-module-ui">
-              <div class="bg-info">
-                <em>No ui function provided.</em>
-              </div>
-            </div>
+        <h2>Server Input Arguments</h2>
+        <h3>Unevaluated</h3>
+        <pre class="shiny-text-output noplaceholder" id="inputs-unev"></pre>
+        <h3>Evaluated</h3>
+        <pre class="shiny-text-output noplaceholder" id="inputs-eval"></pre>
+        <h2>Module UI</h2>
+        <div id="crow-module2app-module-ui">
+          <div class="bg-info">
+            <em>No ui function provided.</em>
           </div>
-          <details class="crow-testbed-pane" open>
-            <summary>
-              <h2>Server Return Values</h2>
-            </summary>
-            <h3>Unevaluated</h3>
-            <pre class="shiny-text-output noplaceholder" id="returns-unev"></pre>
-            <h3>Evaluated</h3>
-            <pre class="shiny-text-output noplaceholder" id="returns-eval"></pre>
-          </details>
         </div>
+        <h2>Server Return Values</h2>
+        <h3>Unevaluated</h3>
+        <pre class="shiny-text-output noplaceholder" id="returns-unev"></pre>
+        <h3>Evaluated</h3>
+        <pre class="shiny-text-output noplaceholder" id="returns-eval"></pre>
       </div>
 
 # works with only UI input
@@ -48,33 +36,21 @@
           <code>module2app</code>
           Testbed
         </h1>
-        <div class="crow-testbed">
-          <details class="crow-testbed-pane" open>
-            <summary>
-              <h2>Server Input Arguments</h2>
-            </summary>
-            <h3>Unevaluated</h3>
-            <pre class="shiny-text-output noplaceholder" id="inputs-unev"></pre>
-            <h3>Evaluated</h3>
-            <pre class="shiny-text-output noplaceholder" id="inputs-eval"></pre>
-          </details>
-          <div class="crow-testbed-module">
-            <h2>Module UI</h2>
-            <div id="crow-module2app-module-ui">
-              <button id="test_object-button" type="button" class="btn btn-default action-button"><span class="action-label">Counter</span></button>
-              <pre class="shiny-text-output noplaceholder" id="test_object-out"></pre>
-            </div>
-          </div>
-          <details class="crow-testbed-pane" open>
-            <summary>
-              <h2>Server Return Values</h2>
-            </summary>
-            <h3>Unevaluated</h3>
-            <pre class="shiny-text-output noplaceholder" id="returns-unev"></pre>
-            <h3>Evaluated</h3>
-            <pre class="shiny-text-output noplaceholder" id="returns-eval"></pre>
-          </details>
+        <h2>Server Input Arguments</h2>
+        <h3>Unevaluated</h3>
+        <pre class="shiny-text-output noplaceholder" id="inputs-unev"></pre>
+        <h3>Evaluated</h3>
+        <pre class="shiny-text-output noplaceholder" id="inputs-eval"></pre>
+        <h2>Module UI</h2>
+        <div id="crow-module2app-module-ui">
+          <button id="test_object-button" type="button" class="btn btn-default action-button"><span class="action-label">Counter</span></button>
+          <pre class="shiny-text-output noplaceholder" id="test_object-out"></pre>
         </div>
+        <h2>Server Return Values</h2>
+        <h3>Unevaluated</h3>
+        <pre class="shiny-text-output noplaceholder" id="returns-unev"></pre>
+        <h3>Evaluated</h3>
+        <pre class="shiny-text-output noplaceholder" id="returns-eval"></pre>
       </div>
 
 ---
@@ -103,33 +79,21 @@
         <code>module2app</code>
         Testbed
       </h1>
-      <div class="crow-testbed">
-        <details class="crow-testbed-pane" open>
-          <summary>
-            <h2>Server Input Arguments</h2>
-          </summary>
-          <h3>Unevaluated</h3>
-          <pre class="shiny-text-output noplaceholder" id="inputs-unev"></pre>
-          <h3>Evaluated</h3>
-          <pre class="shiny-text-output noplaceholder" id="inputs-eval"></pre>
-        </details>
-        <div class="crow-testbed-module">
-          <h2>Module UI</h2>
-          <div id="crow-module2app-module-ui">
-            <button id="test_object-button" type="button" class="btn btn-default action-button"><span class="action-label">Counter</span></button>
-            <pre class="shiny-text-output noplaceholder" id="test_object-out"></pre>
-          </div>
-        </div>
-        <details class="crow-testbed-pane" open>
-          <summary>
-            <h2>Server Return Values</h2>
-          </summary>
-          <h3>Unevaluated</h3>
-          <pre class="shiny-text-output noplaceholder" id="returns-unev"></pre>
-          <h3>Evaluated</h3>
-          <pre class="shiny-text-output noplaceholder" id="returns-eval"></pre>
-        </details>
+      <h2>Server Input Arguments</h2>
+      <h3>Unevaluated</h3>
+      <pre class="shiny-text-output noplaceholder" id="inputs-unev"></pre>
+      <h3>Evaluated</h3>
+      <pre class="shiny-text-output noplaceholder" id="inputs-eval"></pre>
+      <h2>Module UI</h2>
+      <div id="crow-module2app-module-ui">
+        <button id="test_object-button" type="button" class="btn btn-default action-button"><span class="action-label">Counter</span></button>
+        <pre class="shiny-text-output noplaceholder" id="test_object-out"></pre>
       </div>
+      <h2>Server Return Values</h2>
+      <h3>Unevaluated</h3>
+      <pre class="shiny-text-output noplaceholder" id="returns-unev"></pre>
+      <h3>Evaluated</h3>
+      <pre class="shiny-text-output noplaceholder" id="returns-eval"></pre>
 
 # module2app_bare / shows only the module UI
 
