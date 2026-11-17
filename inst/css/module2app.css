@@ -11,8 +11,11 @@
 .crow-testbed-module > h2 {
   margin-top: 0;
 }
-/* narrower screens stack the panes above and below the module */
-@media (min-width: 768px) {
+/*
+  narrower screens stack the panes above and below the module,
+  so screenshots at shinytest2's default width do not narrow it
+*/
+@media (min-width: 1200px) {
   .crow-testbed {
     display: flex;
     align-items: flex-start;

@@ -77,6 +77,8 @@ test_that("shows module inputs, UI and returns in screenshots", {
   driver <- local_app_driver(
     shinytest2_app_fn(source_pef("module2app", "simple", "args")),
     screenshot_args = list(selector = ".container-fluid", expand = 15),
+    width = 1280,
+    height = 800,
     name = "double-counter",
     variant = "linux"
   )
@@ -160,9 +162,11 @@ describe("module2app panes", {
   it("widen the module when they collapse, with bootstrap 3 and 5", {
     skip_if_not_installed("bslib")
     for (wrapper in rlang::exprs(shiny::basicPage, bslib::page_fluid)) {
-      driver <- local_app_driver(shinytest2_app_fn(
-        module2app(counter_button_ui, ui_wrapper = !!wrapper)
-      ))
+      driver <- local_app_driver(
+        shinytest2_app_fn(module2app(counter_button_ui, ui_wrapper = !!wrapper)),
+        width = 1280,
+        height = 800
+      )
       beside_panes <- module_width(driver)
       collapse_panes(driver)
       expect_gt(
@@ -310,12 +314,12 @@ describe("module2app_bare", {
     }
   })
   it("screenshots the same module as module2app", {
-    # module2app narrows the module between its panes
+    # at shinytest2's default width, module2app stacks its panes
     expect_equal(
       screenshot_size(local_app_driver(shinytest2_app_fn(
         module2app_bare(counter_button_ui, counter_button_server)
-      )))[["height"]],
-      screenshot_size(local_app_driver(counter_button_app))[["height"]]
+      ))),
+      screenshot_size(local_app_driver(counter_button_app))
     )
   })
 })

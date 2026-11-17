@@ -242,8 +242,10 @@ display_trees <- function(server_args, effective_args, returns) {
 #' (see [mixed_react_tree()]),
 #' in a pane that collapses when you click its heading,
 #' to give the module more width.
-#' On screens narrower than 768 pixels,
-#' the panes are above and below the module.
+#' On screens narrower than 1200 pixels,
+#' such as shinytest2's default,
+#' the panes are above and below the module,
+#' so the module has the same width as in [module2app_bare()].
 #' Collapsed panes still update their trees.
 #' You can pass reactive values as server arguments,
 #' to observe how your module reacts to them.
