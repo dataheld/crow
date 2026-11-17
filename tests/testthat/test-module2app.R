@@ -144,6 +144,43 @@ test_that("works with bs5", {
     )
   )
 })
+describe("module2app panes", {
+  module_width <- function(driver) {
+    driver$get_js(sprintf(
+      "document.getElementById('%s').offsetWidth",
+      inner_module_id
+    ))
+  }
+  collapse_panes <- function(driver) {
+    driver$run_js(
+      "document.querySelectorAll('.crow-testbed-pane > summary')
+        .forEach(summary => summary.click())"
+    )
+  }
+  it("widen the module when they collapse, with bootstrap 3 and 5", {
+    skip_if_not_installed("bslib")
+    for (wrapper in rlang::exprs(shiny::basicPage, bslib::page_fluid)) {
+      driver <- local_app_driver(shinytest2_app_fn(
+        module2app(counter_button_ui, ui_wrapper = !!wrapper)
+      ))
+      beside_panes <- module_width(driver)
+      collapse_panes(driver)
+      expect_gt(
+        module_width(driver),
+        1.5 * beside_panes,
+        label = rlang::as_label(wrapper)
+      )
+    }
+  })
+  it("keep their displays up to date while collapsed", {
+    driver <- local_app_driver(counter_button_app)
+    collapse_panes(driver)
+    # as any shown or hidden element, such as a tab, makes shiny do
+    driver$run_js("$('.crow-testbed-pane').trigger('hidden')")
+    driver$click(selector = "#test_object-button")
+    expect_equal(driver$get_value(output = "returns-eval"), "[1] 1")
+  })
+})
 correct_attr <- list(
   selector = sprintf("#%1$s, #%1$s > *", inner_module_id),
   region = "border"
@@ -273,11 +310,12 @@ describe("module2app_bare", {
     }
   })
   it("screenshots the same module as module2app", {
+    # module2app narrows the module between its panes
     expect_equal(
       screenshot_size(local_app_driver(shinytest2_app_fn(
         module2app_bare(counter_button_ui, counter_button_server)
-      ))),
-      screenshot_size(local_app_driver(counter_button_app))
+      )))[["height"]],
+      screenshot_size(local_app_driver(counter_button_app))[["height"]]
     )
   })
 })

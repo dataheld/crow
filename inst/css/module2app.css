@@ -1,0 +1,31 @@
+/* bootstrap 3 hides the marker that shows the panes collapse */
+.crow-testbed-pane > summary {
+  display: list-item;
+  cursor: pointer;
+  margin-bottom: 0.5em;
+}
+.crow-testbed-pane > summary > h2 {
+  display: inline;
+}
+/* bootstrap 3 gives the headings a top margin, which inline ones lose */
+.crow-testbed-module > h2 {
+  margin-top: 0;
+}
+/* narrower screens stack the panes above and below the module */
+@media (min-width: 768px) {
+  .crow-testbed {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.5em;
+  }
+  .crow-testbed-module {
+    flex: 1 1 0;
+  }
+  .crow-testbed-pane[open] {
+    flex: 0 1 25%;
+    min-width: 0;
+  }
+  .crow-testbed-pane:not([open]) > summary {
+    writing-mode: vertical-rl;
+  }
+}
