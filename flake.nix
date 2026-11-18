@@ -6,7 +6,7 @@
     nixpkgs.follows = "nullkomma/nixpkgs";
     maxheld = {
       url = "https://flakehub.com/f/dataheld/maxheld/*";
-      inputs.nullkomma.follows = "nullkomma";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
@@ -20,7 +20,7 @@
           removeAttrs config.allSystems.aarch64-darwin.checks [ "r-test" ]
         );
         nullkomma.brand = inputs.maxheld;
-        nullkomma.cloudflare = {
+        nullkomma.cloudflareSite = {
           enable = true;
           domain = "maxheld.de";
           worker = "crow";
@@ -28,6 +28,7 @@
         # CI and deployment use project-owned workflows.
         nullkomma.github.enable = false;
         nullkomma.r.enable = true;
+        nullkomma.r.cranBound = false;
         nullkomma.r.shiny = {
           enable = true;
           function = "counter_button_app";
@@ -39,8 +40,6 @@
           { config, ... }:
           let
             testEnvironment = {
-              SHINYTEST2_LOAD_TIMEOUT = "16000";
-              SHINYTEST2_TIMEOUT = "8000";
               _R_CHECK_PKG_SIZES_THRESHOLD_ = "10";
               _R_CHECK_EXCESSIVE_IMPORTS_ = "40";
               TESTTHAT_CPUS = "1";
