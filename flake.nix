@@ -39,8 +39,6 @@
           { config, ... }:
           let
             testEnvironment = {
-              SHINYTEST2_LOAD_TIMEOUT = "16000";
-              SHINYTEST2_TIMEOUT = "8000";
               _R_CHECK_PKG_SIZES_THRESHOLD_ = "10";
               _R_CHECK_EXCESSIVE_IMPORTS_ = "40";
               TESTTHAT_CPUS = "1";
