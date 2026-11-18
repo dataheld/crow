@@ -7,7 +7,6 @@ man/figures/crow_screenshots/**
 # {shinytest2}: Ignore new debug snapshots for `$expect_values()`
 *_.new.png
 cache/
-/.github/privacy.md
 
 # nullkomma:git:start
 *.Rcheck/
