@@ -22,10 +22,11 @@ new_testbed <- function(testbed_ui, testbed_server) {
       attributes(res),
       list(
         crow_screenshot_args = list(
-          # need to select down to child
-          # because only that actually has a height
-          # the parent div may not, and will then fail the screenshot
-          selector = paste0("#", inner_module_id, " > *"),
+          # chromote screenshots the union of the selected boxes.
+          # The container has a box,
+          # even if the module's elements have none (`display: contents`),
+          # but its height excludes floated elements.
+          selector = sprintf("#%1$s, #%1$s > *", inner_module_id),
           # chromote crops to the content box by default,
           # cutting off padding and borders
           region = "border"
@@ -73,7 +74,7 @@ mount_server <- function(
       res = res
     )
     shiny::exportTestValues(
-      res = fix_test_returns(res),
+      res = exec_tree_of_reacs(res),
       server_args = tree_text(server_args, effective_args),
       returns = tree_text(res),
       reactlog = session_reactlog(shiny::reactlog(), session$token)
@@ -152,6 +153,10 @@ backticks <- function(x) paste0("`", x, "`", collapse = ", ")
 #' @describeIn module2app
 #' UI with the module UI between the displays
 #' of server arguments and return values.
+#' It passes `ui_wrapper` four arguments:
+#' the heading, the server arguments, the module UI and the return values.
+#' A `ui_wrapper` with four parameters can arrange them,
+#' such as in sidebars.
 #' @param ui_wrapper
 #' A function to wrap the resulting [shiny::tagList()] in.
 #' Must yield a full shiny UI,
@@ -160,6 +165,7 @@ backticks <- function(x) paste0("`", x, "`", collapse = ", ")
 #' avoid depending on the wrapper and only return "vanilla" UI.
 #' @example inst/examples/module2app/ui/navbar.R
 #' @example inst/examples/module2app/ui/bootstrap.R
+#' @example inst/examples/module2app/ui/sidebars.R
 #' @export
 module2app_ui <- function(
   module_ui = NULL,
@@ -168,12 +174,25 @@ module2app_ui <- function(
 ) {
   ui_wrapper(
     shiny::h1(shiny::code("module2app"), "Testbed"),
-    shiny::h2("Server Input Arguments"),
-    mixed_react_tree_ui("inputs"),
-    shiny::h2("Module UI"),
-    module_div(module_ui, ui_args),
-    shiny::h2("Server Return Values"),
-    mixed_react_tree_ui("returns")
+    collapsible("Server Input Arguments", mixed_react_tree_ui("inputs")),
+    shiny::div(shiny::h2("Module UI"), module_div(module_ui, ui_args)),
+    collapsible("Server Return Values", mixed_react_tree_ui("returns"))
+  )
+}
+
+collapsible <- function(title, ...) {
+  shiny::tags$details(
+    class = "crow-collapsible",
+    open = NA,
+    shiny::tags$summary(class = "h2", title),
+    ...,
+    htmltools::htmlDependency(
+      name = "crow-collapsible",
+      version = utils::packageVersion("crow"),
+      src = "css",
+      package = "crow",
+      stylesheet = "collapsible.css"
+    )
   )
 }
 
@@ -215,7 +234,9 @@ display_trees <- function(server_args, effective_args, returns) {
 #' - below, the return values of the module server.
 #'
 #' It shows each as an unevaluated and an evaluated tree
-#' (see [mixed_react_tree()]).
+#' (see [mixed_react_tree()]),
+#' which collapse when you click their heading.
+#' Collapsed trees still update.
 #' You can pass reactive values as server arguments,
 #' to observe how your module reacts to them.
 #'
@@ -299,7 +320,8 @@ module2app_bare_server <- function(
 #' Both testbeds mount the module with the ID `test_object`
 #' and export these values for [`shinytest2::AppDriver`]'s `$get_value()`:
 #' - `res`: the return value of the module server,
-#'   called if it is a reactive.
+#'   with its reactives replaced by their values,
+#'   as in the evaluated tree (see [mixed_react_tree()]).
 #' - `server_args`, `returns`:
 #'   the server arguments and the return values,
 #'   each a list of the `unevaluated` and `evaluated` tree,
@@ -367,16 +389,6 @@ module2app_bare <- new_testbed(
   module2app_bare_server
 )
 
-#' Need to protect against non-reactive values
-#' @noRd
-fix_test_returns <- function(x) {
-  if (shiny::is.reactive(x)) {
-    x()
-  } else {
-    x
-  }
-}
-
 no_fun_provided_ui <- function(id, x = "ui") {
   shiny::NS(id) # unused
   shiny::tagList(
@@ -408,10 +420,13 @@ no_fun_provided_glue <- function(x) glue::glue("No {x} function provided.")
 
 #' Show Tree of Mixed Reactive Values
 #'
-#' To evaluate the (reactive) values,
-#' the function walks down the tree of return values
-#' and `rlang::exec()`s all the `shiny::is.reactive()`s it can find,
-#' going until it hits a non-list (`is.list()`) that is also *not* a reactive.
+#' To evaluate the tree,
+#' the function walks down bare lists ([rlang::is_bare_list()])
+#' and replaces each [shiny::is.reactive()] by its value,
+#' walking down that value in turn.
+#' Everything else is a leaf, printed by its own `print()` method:
+#' reactives inside a leaf, such as a classed list, stay unevaluated.
+#' Printing never opens the viewer or a browser.
 #'
 #' @section Changes to the Reactive Graph:
 #' Note that because this module prints *all* returned reactives from the
@@ -420,11 +435,6 @@ no_fun_provided_glue <- function(x) glue::glue("No {x} function provided.")
 #' For example,
 #' these reactives might be invalidated at a different time in your use
 #' of your modules outside of this testbed.
-#'
-#' @section Bugs:
-#' The display currently includes a workaround for this (likely upstream) bug:
-#' The content of reactive gets [unclass()]ed
-#' before display ([#40](https://github.com/dataheld/crow/issues/40)).
 #'
 #' @details
 #' In the simplest case,
@@ -482,9 +492,9 @@ tree_server <- function(id, tree, evaluated = tree) {
   shiny::moduleServer(
     id = id,
     function(input, output, session) {
-      output$unev <- shiny::renderPrint(unbrowsable(tree))
+      output$unev <- shiny::renderPrint(writeLines(print_text(tree)))
       output$eval <- shiny::renderPrint(
-        unbrowsable(exec_tree_of_reacs(evaluated))
+        writeLines(print_text(exec_tree_of_reacs(evaluated)))
       )
     }
   )
@@ -499,12 +509,24 @@ tree_text <- function(tree, evaluated = tree) {
   ))
 }
 
+#' Prints without the viewer or a browser, and only the first entries
+#'
+#' Print methods with a `view` argument,
+#' such as those of htmlwidgets and gt tables,
+#' would open them over the running app.
+#' `x` is evaluated before the options are set,
+#' so that the module's reactives in `x` do not see them.
+#' @noRd
 print_text <- function(x) {
+  force(x)
+  withr::local_options(viewer = no_view, browser = no_view, max.print = 20)
   # like shiny::renderPrint(), which drops the final newline
   sub("\n$", "", paste(utils::capture.output(unbrowsable(x)), collapse = "\n"))
 }
 
-#' Keeps `print()` from opening the Viewer over the running app
+no_view <- function(...) invisible(NULL)
+
+#' Print browsable leaves as text, instead of nothing
 #'
 #' Only bare lists are nodes:
 #' the elements of a classed list, such as `POSIXlt`,
@@ -524,25 +546,14 @@ widget_as_tags <- function(x) {
   if (inherits(x, "htmlwidget")) htmltools::as.tags(x) else x
 }
 
+#' Only bare lists are nodes, as in `unbrowsable()`
+#' @noRd
 exec_tree_of_reacs <- function(x) {
-  purrr::modify_tree(
-    x,
-    is_node = is_list_or_reactive,
-    pre = exec_if_reactive
-  )
-}
-
-is_list_or_reactive <- function(x) {
-  is.list(x) || shiny::is.reactive(x)
+  purrr::modify_tree(x, is_node = rlang::is_bare_list, leaf = exec_if_reactive)
 }
 
 exec_if_reactive <- function(x) {
-  if (shiny::is.reactive(x)) {
-    x <- rlang::exec(x)
-    # TODO remove this workaround for https://github.com/dataheld/crow/issues/40
-    x <- unclass(x)
-  }
-  x
+  if (shiny::is.reactive(x)) exec_tree_of_reacs(x()) else x
 }
 
 # test modules =====

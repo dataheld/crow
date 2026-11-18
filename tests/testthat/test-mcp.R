@@ -151,6 +151,18 @@ test_that("module apps start, change, report, screenshot and stop", {
   expect_match(tool("module_app_get")(id), "^## Error\nNo running app")
 })
 
+test_that("module_app_screenshot() reports why a screenshot failed", {
+  id <- app_id(tool("module_app_start")(
+    path = pkg_root(),
+    ui = "function(id) NULL"
+  ))
+  withr::defer(try(tool("module_app_stop")(id), silent = TRUE))
+  expect_match(
+    tool("module_app_screenshot")(id),
+    "^## Error\n[^#]*screenshot with 0 height"
+  )
+})
+
 test_that("module app tools report wrong calls as errors", {
   expect_match(
     tool("module_app_set")("app0", inputs = "{not json"),

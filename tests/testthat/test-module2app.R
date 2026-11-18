@@ -144,8 +144,38 @@ test_that("works with bs5", {
     )
   )
 })
+describe("module2app panes", {
+  it("collapse, and keep their displays up to date", {
+    driver <- local_app_driver(counter_button_app)
+    driver$run_js(
+      "document.querySelectorAll('summary').forEach(s => s.click())"
+    )
+    # as any shown or hidden element, such as a tab, makes shiny do
+    driver$run_js("$('details').trigger('hidden')")
+    driver$click(selector = "#test_object-button")
+    expect_false(driver$get_js(
+      "document.getElementById('returns-eval').checkVisibility()"
+    ))
+    expect_equal(driver$get_value(output = "returns-eval"), "[1] 1")
+  })
+  it("can go beside the module, as with bslib sidebars", {
+    skip_if_not_installed("bslib")
+    driver <- local_app_driver(shinytest2_app_fn(module2app(
+      counter_button_ui,
+      ui_wrapper = source_pef("module2app", "ui", "sidebars")
+    )))
+    left <- function(id) {
+      driver$get_js(sprintf(
+        "document.getElementById('%s').getBoundingClientRect().left",
+        id
+      ))
+    }
+    expect_lt(left("inputs-eval"), left(inner_module_id))
+    expect_lt(left(inner_module_id), left("returns-eval"))
+  })
+})
 correct_attr <- list(
-  selector = paste0("#", inner_module_id, " > *"),
+  selector = sprintf("#%1$s, #%1$s > *", inner_module_id),
   region = "border"
 )
 test_that("returns attribute with dom selector", {
@@ -219,36 +249,65 @@ describe("module2app_bare", {
     expect_snapshot(cat(returns$unevaluated))
     expect_snapshot(cat(returns$evaluated))
   })
-  it("screenshots the module with its padding and border", {
+  it("exports the return value with its reactives evaluated", {
+    driver <- local_app_driver(shinytest2_app_fn(module2app_bare(
+      module_server = function(id) {
+        shiny::moduleServer(id, function(input, output, session) {
+          list(
+            flag = shiny::reactive(TRUE),
+            data = shiny::reactive(data.frame(a = 1L)),
+            nested = list(shiny::reactive(list(n = shiny::reactive(1L))))
+          )
+        })
+      }
+    )))
+    expect_equal(
+      driver$get_value(export = "res"),
+      list(flag = TRUE, data = data.frame(a = 1L), nested = list(list(n = 1L)))
+    )
+  })
+  screenshot_size <- function(driver) {
     path <- withr::local_tempfile(fileext = ".png")
+    driver$get_screenshot(file = path)
+    unlist(magick::image_info(magick::image_read(path))[c("width", "height")])
+  }
+  it("screenshots floated modules with their padding and border", {
     driver <- local_app_driver(shinytest2_app_fn(module2app_bare(
       function(id) {
         shiny::div(
           id = id,
-          style = "width: 100px; height: 50px; padding: 10px; border: 5px solid"
+          style = "float: left; height: 50px; padding: 10px; border: 5px solid"
         )
       }
     )))
-    driver$get_screenshot(file = path)
-    expect_equal(
-      unlist(magick::image_info(magick::image_read(path))[c(
-        "width",
-        "height"
-      )]),
-      c(width = 100, height = 50)
-    )
+    expect_equal(screenshot_size(driver)[["height"]], 50)
+  })
+  it("screenshots modules whose top-level elements have no box", {
+    skip_if_not_installed("bslib")
+    # bslib themes give a filled uiOutput() `display: contents`
+    for (wrapper in rlang::exprs(shiny::basicPage, bslib::page_fluid)) {
+      driver <- local_app_driver(shinytest2_app_fn(module2app_bare(
+        function(id) shiny::uiOutput(shiny::NS(id, "out")),
+        function(id) {
+          shiny::moduleServer(id, function(input, output, session) {
+            output$out <- shiny::renderUI(shiny::div(style = "height: 50px"))
+          })
+        },
+        ui_wrapper = !!wrapper
+      )))
+      expect_equal(
+        screenshot_size(driver)[["height"]],
+        50,
+        info = rlang::as_label(wrapper)
+      )
+    }
   })
   it("screenshots the same module as module2app", {
-    screenshot_info <- function(app) {
-      path <- withr::local_tempfile(fileext = ".png")
-      local_app_driver(app)$get_screenshot(file = path)
-      magick::image_info(magick::image_read(path))[c("width", "height")]
-    }
     expect_equal(
-      screenshot_info(shinytest2_app_fn(
+      screenshot_size(local_app_driver(shinytest2_app_fn(
         module2app_bare(counter_button_ui, counter_button_server)
-      )),
-      screenshot_info(counter_button_app)
+      ))),
+      screenshot_size(local_app_driver(counter_button_app))
     )
   })
 })
@@ -276,9 +335,31 @@ widget_html <- as.character(htmltools::as.tags(widget))
 local_failing_viewer <- function(.local_envir = parent.frame()) {
   withr::local_options(
     viewer = \(url, ...) stop("Viewer called."),
+    browser = \(url, ...) stop("Browser called."),
     .local_envir = .local_envir
   )
 }
+
+#' Like `print.htmlwidget(view = TRUE)` and `print.gt_tbl(view = TRUE)`,
+#' which call the viewer only in interactive sessions
+local_viewing_print <- function(.local_envir = parent.frame()) {
+  testthat::local_mocked_s3_method(
+    "print",
+    "crow_viewing",
+    function(x, ...) {
+      getOption("viewer", utils::browseURL)("index.html")
+      utils::browseURL("index.html")
+    },
+    frame = .local_envir
+  )
+}
+
+viewing <- structure(list(), class = "crow_viewing")
+viewing_tree <- list(
+  viewing,
+  structure(list(viewing), class = "crow_wrapper"),
+  shiny::reactive(viewing)
+)
 
 describe("tree_text", {
   it("prints flat returns", {
@@ -344,6 +425,48 @@ describe("tree_text", {
   it("prints classed lists without walking them", {
     time <- as.POSIXlt("2026-01-01", tz = "UTC")
     expect_equal(print_text(list(time)), "[[1]]\n[1] \"2026-01-01 UTC\"")
+    expect_equal(
+      tree_text(list(time, shiny::reactive(time)))$evaluated,
+      print_text(list(time, time))
+    )
+  })
+  it("prints environments, such as R6 objects, as leaves", {
+    env <- new.env()
+    handle <- structure(new.env(), class = "handle")
+    expect_equal(
+      tree_text(list(shiny::reactive(env), shiny::reactive(handle)))$evaluated,
+      print_text(list(env, handle))
+    )
+  })
+  it("keeps the class of reactive values", {
+    expect_equal(
+      tree_text(shiny::reactive(factor("a")))$evaluated,
+      "[1] a\nLevels: a"
+    )
+    expect_equal(
+      tree_text(shiny::reactive(htmltools::HTML("<b></b>")))$evaluated,
+      "<b></b>"
+    )
+  })
+  it("calls neither the viewer nor the browser from any print method", {
+    local_failing_viewer()
+    local_viewing_print()
+    expect_no_error(tree_text(viewing_tree))
+  })
+  it("prints only the first entries of long values", {
+    long <- list(data.frame(x = 1:5000), list(as.list(1:5000)))
+    text <- tree_text(long, list(shiny::reactive(long)))
+    purrr::walk(text, \(text) {
+      expect_match(text, "omitted 4980 rows", fixed = TRUE)
+      expect_match(text, "omitted 4980 entries", fixed = TRUE)
+    })
+  })
+  it("evaluates reactives without its print options", {
+    withr::local_options(max.print = 1234)
+    expect_equal(
+      tree_text(shiny::reactive(getOption("max.print")))$evaluated,
+      "[1] 1234"
+    )
   })
 })
 
@@ -356,6 +479,18 @@ describe("mixed_react_tree_server", {
       expr = {
         expect_equal(output$unev, "$a\n<p></p>")
         expect_equal(output$eval, "$a\n<p></p>")
+      }
+    )
+  })
+  it("calls neither the viewer nor the browser from any print method", {
+    local_failing_viewer()
+    local_viewing_print()
+    shiny::testServer(
+      mixed_react_tree_server,
+      args = list(tree = viewing_tree),
+      expr = {
+        expect_no_error(output$unev)
+        expect_no_error(output$eval)
       }
     )
   })
