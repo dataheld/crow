@@ -28,6 +28,7 @@
         # CI and deployment use project-owned workflows.
         nullkomma.github.enable = false;
         nullkomma.r.enable = true;
+        nullkomma.r.cranBound = false;
         nullkomma.r.shiny = {
           enable = true;
           function = "counter_button_app";
