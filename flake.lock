@@ -79,12 +79,12 @@
         "pillar": "pillar"
       },
       "locked": {
-        "lastModified": 1795017872,
-        "narHash": "sha256-KbwHM8w38oBd2yiHIP8K2Wajaiyjlrji3rEueb06X3k=",
-        "rev": "b46bea70a4a0ae764bf86c9df89e67bff055eadf",
-        "revCount": 273,
+        "lastModified": 1795032702,
+        "narHash": "sha256-nB4yGQ0dsF6hUK67zYBLQ8vQjzyGrtmqs4pJABumhYg=",
+        "rev": "aeff050f7ba2d06f85ff921f7df3ae185360161c",
+        "revCount": 279,
         "type": "tarball",
-        "url": "https://api.flakehub.com/f/pinned/dataheld/maxheld/0.1.273%2Brev-b46bea70a4a0ae764bf86c9df89e67bff055eadf/01a1ef6d-0955-71d0-8c49-6c99cc3375e5/source.tar.gz"
+        "url": "https://api.flakehub.com/f/pinned/dataheld/maxheld/0.1.279%2Brev-aeff050f7ba2d06f85ff921f7df3ae185360161c/01a1f04e-df90-77b2-97ef-596fae1bf202/source.tar.gz"
       },
       "original": {
         "type": "tarball",
