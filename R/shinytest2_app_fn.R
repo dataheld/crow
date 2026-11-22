@@ -27,7 +27,8 @@
 #' @param package
 #' Name of your package.
 #' Defaults to the package calling `shinytest2_app_fn()`,
-#' such as the one under test.
+#' such as the one under test,
+#' or else to the package in the working directory.
 #' @return A function without arguments.
 #' @examples
 #' \dontrun{
@@ -39,7 +40,7 @@
 #' @export
 shinytest2_app_fn <- function(
   code,
-  package = utils::packageName(rlang::caller_env())
+  package = utils::packageName(rlang::caller_env()) %||% pkgload::pkg_name()
 ) {
   checkmate::assert_string(package)
   rlang::new_function(NULL, rlang::enexpr(code), asNamespace(package))

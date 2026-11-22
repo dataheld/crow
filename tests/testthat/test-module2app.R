@@ -266,11 +266,6 @@ describe("module2app_bare", {
       list(flag = TRUE, data = data.frame(a = 1L), nested = list(list(n = 1L)))
     )
   })
-  screenshot_size <- function(driver) {
-    path <- withr::local_tempfile(fileext = ".png")
-    driver$get_screenshot(file = path)
-    unlist(magick::image_info(magick::image_read(path))[c("width", "height")])
-  }
   it("screenshots floated modules with their padding and border", {
     driver <- local_app_driver(shinytest2_app_fn(module2app_bare(
       function(id) {

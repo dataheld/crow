@@ -254,9 +254,7 @@ display_trees <- function(server_args, effective_args, returns) {
 #' and accept changes to reactive `server_args` while the app runs
 #' (see [module2app_bare()]).
 #'
-#' If you are testing screenshots,
-#' you are recommended to use [get_screenshot_args_attr()]
-#' to screenshot only your actual module UI,
+#' Screenshots from [local_app_driver()] show only your actual module UI,
 #' without the displays of server arguments and return values.
 #'
 #' @crowInsertSnaps
@@ -264,7 +262,6 @@ display_trees <- function(server_args, effective_args, returns) {
 #' double-counter
 #' TRUE
 #' linux
-#' 1
 #'
 #' @param module_ui,module_server
 #' Module functions.
@@ -703,6 +700,12 @@ x_counter_button_server <- function(id, set_to = 2L, deep = FALSE) {
 #' and exposing it via the `crow_screenshot_args`.
 #'
 #' @details
+#' [local_app_driver()] does not need this attribute:
+#' it measures the module in the browser,
+#' including what the module shows outside its own box.
+#' Use the attribute for other drivers,
+#' such as `shinytest2::AppDriver$new(app, screenshot_args = )`.
+#'
 #' The `crow_screenshot_args` attribute can be set on whatever
 #' object you pass to `appDir`.
 #' It should be a list passable to the `screenshot_args` argument

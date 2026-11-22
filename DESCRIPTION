@@ -39,6 +39,7 @@ Imports:
     mcptools,
     pkgload,
     purrr,
+    R6,
     rlang,
     shiny,
     shinytest2,

@@ -170,9 +170,11 @@ test_that("foo_server counts by the increment", {
 
 The scaffold's second test drives `foo_app()` in Chrome with shinytest2.
 It screenshots only the module UI,
-because `crow::local_app_driver()` takes its selector from the testbed
-(see `crow::get_screenshot_args_attr()`),
-and stops the app when the test ends.
+including what its elements show outside its box, such as dropdown menus,
+but not popups in the page body, such as date pickers and modals,
+because `crow::local_app_driver()` measures the testbed's module
+at each screenshot.
+The driver stops the app when the test ends.
 Extend it with the interactions that show what the module does,
 one `driver$expect_screenshot()` after each:
 
@@ -194,8 +196,11 @@ expect_equal(driver$get_value(export = "res"), 1L)
   not an installed, possibly outdated package.
   To pass arguments, wrap the call in `crow::shinytest2_app_fn()`,
   e.g. `crow::shinytest2_app_fn(foo_app(ui_wrapper = bslib::page_fluid))`.
+- For notifications (`shiny::showNotification()`) in the screenshots,
+  pass `notifications = TRUE` to `crow::local_app_driver()`.
 - Avoid randomness and time in the UI;
   screenshots must be identical between runs.
+  The driver already shows the end state of transitions and animations.
 
 Run the tests, then look at the screenshots.
 To check the UI while you iterate, without tests:

@@ -66,7 +66,7 @@
       \section{Screenshots from Tests}{
         \if{html}{
           name: \code{bins}, variant: \code{linux}
-      \figure{crow_screenshots/helpers/bins.gif}{options: width='100\%' alt=Screenshot from App}
+      \figure{crow_screenshots/helpers/bins.gif}{options: width='100\%' alt='Screenshot from App'}
         }
         \if{latex}{
           Screenshots cannot be shown in this output format.
@@ -81,9 +81,9 @@
       \section{Screenshots from Tests}{
         \if{html}{
           name: \code{bins}, variant: \code{linux}
-      \figure{crow_screenshots/helpers/bins.gif}{options: width='100\%' alt=Screenshot from App}
+      \figure{crow_screenshots/helpers/bins.gif}{options: width='100\%' alt='Screenshot from App'}
       name: \code{bins}, variant: \code{mac}
-      \figure{crow_screenshots/helpers/bins.gif}{options: width='100\%' alt=Screenshot from App}
+      \figure{crow_screenshots/helpers/bins.gif}{options: width='100\%' alt='Screenshot from App'}
         }
         \if{latex}{
           Screenshots cannot be shown in this output format.
