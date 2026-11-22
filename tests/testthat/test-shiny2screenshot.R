@@ -92,8 +92,7 @@ describe("dir_ls_snaps", {
       regexp = glue_regexp_snaps(
         name = "bins",
         auto_numbered = FALSE
-      ),
-      variant = variant
+      )
     )
     expect_snapshot(snaps, variant = variant)
   })
@@ -103,16 +102,14 @@ describe("dir_ls_snaps", {
       regexp = glue_regexp_snaps(
         name = "mpg",
         auto_numbered = FALSE
-      ),
-      variant = variant
+      )
     )
     expect_snapshot(snaps, variant = variant)
   })
   it("finds automatically numbered, unnamed screenshots", {
     snaps <- dir_ls_snaps(
       test_file = "helpers",
-      regexp = glue_regexp_snaps(),
-      variant = variant
+      regexp = glue_regexp_snaps()
     )
     expect_snapshot(snaps, variant = variant)
   })
@@ -122,17 +119,19 @@ describe("dir_ls_snaps", {
       regexp = glue_regexp_snaps(
         name = "foo",
         auto_numbered = FALSE
-      ),
-      variant = variant
+      )
     )
     expect_snapshot(snaps, variant = variant)
   })
 })
 
-describe("map_snaps_animate", {
+describe("image_animate_snaps", {
   it("fails if file is missing", {
-    expect_error(map_snaps_animate("i-do-not-exist"))
-    expect_error(map_snaps_animate(c("i-do-not-exist", "me-neither")))
+    expect_error(image_animate_snaps("i-do-not-exist"), "could not be found")
+    expect_error(
+      image_animate_snaps(c("i-do-not-exist", "me-neither")),
+      "could not be found"
+    )
   })
   it("reads in single screenshot", {
     snaps <- dir_ls_snaps(
@@ -140,8 +139,7 @@ describe("map_snaps_animate", {
       regexp = glue_regexp_snaps(
         name = "foo",
         auto_numbered = FALSE
-      ),
-      variant = variant
+      )
     )
     path <- withr::local_tempfile()
     testthat::expect_snapshot_file(
@@ -156,8 +154,7 @@ describe("map_snaps_animate", {
       regexp = glue_regexp_snaps(
         name = "bins",
         auto_numbered = FALSE
-      ),
-      variant = variant
+      )
     )
     path <- withr::local_tempfile()
     testthat::expect_snapshot_file(
@@ -165,6 +162,25 @@ describe("map_snaps_animate", {
       name = "multiple.gif",
       variant = variant
     )
+  })
+  it("shows every frame whole and alone, whatever its size", {
+    snaps <- withr::local_tempfile(fileext = c(".png", ".png"))
+    magick::image_write(magick::image_blank(100, 50, "red"), snaps[[1]])
+    magick::image_write(magick::image_blank(80, 70, "blue"), snaps[[2]])
+    gif <- image_animate_snaps(snaps) |>
+      image_write_snaps(path = withr::local_tempfile(fileext = ".gif"))
+    # as a browser shows it, after each frame's disposal
+    shown <- magick::image_coalesce(magick::image_read(gif))
+    expect_equal(magick::image_info(shown)$width, c(100, 100))
+    expect_equal(magick::image_info(shown)$height, c(70, 70))
+    color <- function(frame, x, y) {
+      pixel <- magick::image_data(shown[frame], "rgba")[, x, y]
+      if (pixel[[4]] == 0) "none" else paste(pixel[1:3], collapse = "")
+    }
+    expect_equal(color(1, 100, 50), "ff0000")
+    expect_equal(color(1, 100, 51), "none")
+    expect_equal(color(2, 80, 70), "0000ff")
+    expect_equal(color(2, 81, 1), "none")
   })
 })
 
@@ -175,8 +191,7 @@ describe("snaps2fig and friends work", {
     res <- snaps2fig(
       test_file = "helpers",
       name = "bins",
-      auto_numbered = FALSE,
-      variant = variant
+      auto_numbered = FALSE
     )
     checkmate::expect_file_exists(
       "man/figures/crow_screenshots/helpers/bins.gif"
@@ -190,9 +205,20 @@ describe("snaps2fig and friends work", {
     res <- snaps2md(
       test_file = "helpers",
       name = "bins",
-      auto_numbered = FALSE,
-      variant = variant
+      auto_numbered = FALSE
     )
     expect_snapshot(res)
+  })
+  it("replaces a figure of the other format", {
+    figure <- fs::path("man/figures/crow_screenshots/helpers/foo")
+    withr::defer(unlink(fs::path_ext_set(figure, c("png", "gif"))))
+    fs::dir_create(fs::path_dir(figure))
+    fs::file_touch(fs::path_ext_set(figure, "gif"))
+    res <- snaps2fig(test_file = "helpers", name = "foo", auto_numbered = FALSE)
+    expect_equal(res, fs::path("crow_screenshots", "helpers", "foo.png"))
+    expect_equal(
+      fs::path_file(fs::dir_ls(fs::path_dir(figure), regexp = "/foo\\.")),
+      "foo.png"
+    )
   })
 })

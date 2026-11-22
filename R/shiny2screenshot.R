@@ -249,8 +249,8 @@ snaps2fig <- function(
   test_file = character(),
   name = NULL,
   auto_numbered = TRUE,
-  variant = shinytest2::platform_variant(),
-  fps = 5,
+  variant = shinytest2::platform_variant(r_version = FALSE),
+  fps = 1,
   ...
 ) {
   snaps_paths <- dir_ls_snaps(
@@ -273,10 +273,15 @@ snaps2fig <- function(
     "crow_screenshots",
     test_file,
     if (!is.null(name)) name,
-    ext = unique(magick::image_info(snaps_img)$format)
+    ext = tolower(unique(magick::image_info(snaps_img)$format))
   )
   fs::dir_create(path = fs::path_dir(path_for_results))
-  # side effect happens here
+  # side effects happen here
+  # `.PNG` is how crow named single screenshots before
+  unlink(fs::path(
+    fs::path_ext_remove(path_for_results),
+    ext = c("png", "PNG", "gif")
+  ))
   res <- image_write_snaps(snaps_img, path = path_for_results)
   # roxygen2/man markdown expects relative paths from here
   fs::path_rel(res, start = "man/figures")
@@ -304,8 +309,8 @@ snaps2rd <- function(
   test_file = character(),
   name = NULL,
   auto_numbered = TRUE,
-  variant = shinytest2::platform_variant(),
-  fps = 5
+  variant = shinytest2::platform_variant(r_version = FALSE),
+  fps = 1
 ) {
   path <- snaps2fig(
     test_file = test_file,
@@ -346,7 +351,7 @@ snaps2rd <- function(
 dir_ls_snaps <- function(
   test_file = character(),
   regexp = glue_regexp_snaps(),
-  variant = shinytest2::platform_variant()
+  variant = shinytest2::platform_variant(r_version = FALSE)
 ) {
   checkmate::assert_string(test_file)
   test_path <- testthat::test_path("_snaps", variant, test_file)
@@ -396,13 +401,23 @@ glue_regexp_snaps <- function(name = NULL, auto_numbered = TRUE) {
 #' @describeIn get_screenshot_from_snaps
 #' Read in screenshot.
 #' If several, animate into a gif.
+#' Frames of different sizes start at the top left
+#' of a transparent canvas as large as the largest frame.
 #' @param snaps
 #' Vector of file names, as returned by [dir_ls_snaps()]
+#' @param fps
+#' Frames per second.
+#' Must divide 100.
 #' @inheritParams magick::image_animate
 #' @inheritDotParams magick::image_animate
 #' @return For [image_animate_snaps()] A `magick-image`.
 #' @export
-image_animate_snaps <- function(snaps = fs::path(), fps = 5, ...) {
+image_animate_snaps <- function(
+  snaps = fs::path(),
+  fps = 1,
+  dispose = "background",
+  ...
+) {
   if (!all(fs::file_exists(snaps))) {
     rlang::abort("File could not be found.")
   }
@@ -410,10 +425,17 @@ image_animate_snaps <- function(snaps = fs::path(), fps = 5, ...) {
   # stripping helps to avoid spurious diffs
   res <- magick::image_read(snaps, strip = TRUE)
   if (length(snaps) == 1) {
-    res
-  } else {
-    magick::image_animate(res, fps = fps, ...)
+    return(res)
   }
+  # a gif crops all frames to the first
+  info <- magick::image_info(res)
+  res <- magick::image_extent(
+    res,
+    geometry = magick::geometry_size_pixels(max(info$width), max(info$height)),
+    gravity = "northwest",
+    color = "none"
+  )
+  magick::image_animate(res, fps = fps, dispose = dispose, ...)
 }
 
 #' @describeIn get_screenshot_from_snaps
