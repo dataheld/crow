@@ -318,7 +318,7 @@ snaps2rd <- function(
   path
   glue_latex(
     "name: \\code{[name]}, variant: \\code{[variant]}
-    \\figure{[path]}{options: width='100\\%' alt=[snap_alt_text()]}"
+    \\figure{[path]}{options: width='100\\%' alt='[snap_alt_text()]'}"
   )
 }
 
