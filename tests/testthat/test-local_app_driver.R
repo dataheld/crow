@@ -9,14 +9,85 @@ test_that("stops the driver when the calling frame exits", {
   })
   expect_error(driver$get_value(export = "res"))
 })
-test_that("takes screenshot arguments from app factories and objects", {
+test_that("runs app factories only in the app's process", {
+  withr::local_envvar(CROW_TEST_FACTORY = NA)
+  local_app_driver(shinytest2_app_fn({
+    Sys.setenv(CROW_TEST_FACTORY = "ran")
+    counter_button_app()
+  }))
+  expect_equal(Sys.getenv("CROW_TEST_FACTORY"), "")
+})
+
+describe("screenshots of testbed modules", {
+  screenshot_size <- function(driver) {
+    path <- withr::local_tempfile(fileext = ".png")
+    driver$get_screenshot(file = path)
+    unlist(magick::image_info(magick::image_read(path))[c("width", "height")])
+  }
+  module_app <- function(ui, server = NULL, ...) {
+    local_app_driver(
+      shinytest2_app_fn(
+        module2app_bare(!!rlang::enexpr(ui), !!rlang::enexpr(server))
+      ),
+      ...,
+      .local_envir = parent.frame()
+    )
+  }
+  it("include positioned descendants, also below the page", {
+    driver <- module_app(function(id) {
+      shiny::div(
+        style = "position: relative; height: 20px",
+        shiny::div(style = "position: absolute; height: 2000px; width: 50px")
+      )
+    })
+    expect_equal(screenshot_size(driver)[["height"]], 2000)
+  })
+  it("leave out what scroll containers hide", {
+    driver <- module_app(function(id) {
+      shiny::div(
+        style = "overflow: auto; height: 50px",
+        shiny::div(style = "height: 500px")
+      )
+    })
+    expect_equal(screenshot_size(driver)[["height"]], 50)
+  })
+  it("include notifications only if asked to", {
+    module <- rlang::expr(function(id) shiny::div(style = "height: 50px"))
+    notifying <- rlang::expr(function(id) {
+      shiny::moduleServer(id, function(input, output, session) {
+        shiny::showNotification("Done", duration = NULL)
+      })
+    })
+    without <- module_app(!!module, !!notifying)
+    expect_equal(screenshot_size(without)[["height"]], 50)
+    with <- module_app(!!module, !!notifying, notifications = TRUE)
+    # Shiny shows notifications at the bottom of the window
+    stage_top <- with$get_js(sprintf(
+      "document.getElementById('%s').getBoundingClientRect().top",
+      inner_module_id
+    ))
+    expect_equal(
+      screenshot_size(with)[["height"]],
+      with$get_window_size()$height - stage_top
+    )
+  })
+})
+
+test_that("shows the end state of transitions", {
+  driver <- local_app_driver(shinytest2_app_fn(module2app_bare(
+    function(id) {
+      shiny::div(
+        id = id,
+        style = "width: 10px; height: 10px; transition: width 0.3s"
+      )
+    }
+  )))
+  width <- "document.getElementById('test_object').getBoundingClientRect().width"
   expect_equal(
-    app_screenshot_args(counter_button_app),
-    get_screenshot_args_attr(counter_button_app())
+    driver$get_js(paste(
+      "document.getElementById('test_object').style.width = '300px';",
+      width
+    )),
+    300
   )
-  expect_equal(
-    app_screenshot_args(counter_button_app()),
-    get_screenshot_args_attr(counter_button_app())
-  )
-  expect_equal(app_screenshot_args(examples_app()), rlang::missing_arg())
 })

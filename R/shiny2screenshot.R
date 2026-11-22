@@ -111,7 +111,7 @@ check_installed_roxygen2 <- function() {
 #' @export
 get_screenshot_from_app <- function(
   appDir,
-  screenshot_args = app_screenshot_args(appDir),
+  screenshot_args = rlang::missing_arg(),
   name = character(1L),
   file = NULL,
   strict = FALSE
