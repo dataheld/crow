@@ -170,7 +170,8 @@ test_that("foo_server counts by the increment", {
 
 The scaffold's second test drives `foo_app()` in Chrome with shinytest2.
 It screenshots only the module UI,
-including what the module opens outside its box, such as dropdown menus,
+including what its elements show outside its box, such as dropdown menus,
+but not popups in the page body, such as date pickers and modals,
 because `crow::local_app_driver()` measures the testbed's module
 at each screenshot.
 The driver stops the app when the test ends.

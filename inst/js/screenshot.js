@@ -92,5 +92,9 @@ function crowVisibleRect(element) {
       bottom = Math.min(bottom, y + ancestor.clientHeight);
     }
   }
+  // as the document clips what is hidden before its start,
+  // such as the native input of shiny::fileInput()
+  left = Math.max(left, -scrollX);
+  top = Math.max(top, -scrollY);
   return [left, top, right, bottom];
 }

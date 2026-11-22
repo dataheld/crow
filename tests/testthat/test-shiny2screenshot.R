@@ -211,7 +211,7 @@ describe("snaps2fig and friends work", {
   })
   it("replaces a figure of the other format", {
     figure <- fs::path("man/figures/crow_screenshots/helpers/foo")
-    withr::defer(unlink(fs::path_ext_set(figure, c("png", "gif"))))
+    withr::defer(unlink(paste0(figure, c(".png", ".gif"))))
     fs::dir_create(fs::path_dir(figure))
     fs::file_touch(fs::path_ext_set(figure, "gif"))
     res <- snaps2fig(test_file = "helpers", name = "foo", auto_numbered = FALSE)

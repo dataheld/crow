@@ -37,6 +37,22 @@ describe("screenshots of testbed modules", {
     })
     expect_equal(screenshot_size(driver)[["height"]], 2000)
   })
+  it("leave out what is hidden outside the page", {
+    driver <- module_app(function(id) {
+      shiny::fileInput(shiny::NS(id, "file"), NULL)
+    })
+    expect_true(all(screenshot_size(driver) < 1000))
+  })
+  it("measure after the delay", {
+    driver <- module_app(function(id) {
+      shiny::div(id = id, style = "height: 50px")
+    })
+    driver$run_js(paste(
+      "const module = document.getElementById('test_object');",
+      "setTimeout(() => module.style.height = '200px', 500);"
+    ))
+    expect_equal(screenshot_size(driver, delay = 1)[["height"]], 200)
+  })
   it("leave out what scroll containers hide", {
     driver <- module_app(function(id) {
       shiny::div(
@@ -77,7 +93,7 @@ test_that("shows the end state of transitions", {
       )
     }
   )))
-  width <- "document.getElementById('test_object').getBoundingClientRect().width"
+  width <- "document.getElementById('test_object').offsetWidth"
   expect_equal(
     driver$get_js(paste(
       "document.getElementById('test_object').style.width = '300px';",

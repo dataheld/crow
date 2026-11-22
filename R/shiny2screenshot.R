@@ -278,10 +278,8 @@ snaps2fig <- function(
   fs::dir_create(path = fs::path_dir(path_for_results))
   # side effects happen here
   # `.PNG` is how crow named single screenshots before
-  unlink(fs::path(
-    fs::path_ext_remove(path_for_results),
-    ext = c("png", "PNG", "gif")
-  ))
+  stale <- fs::path_ext_remove(path_for_results)
+  unlink(paste0(stale, c(".png", ".PNG", ".gif")))
   res <- image_write_snaps(snaps_img, path = path_for_results)
   # roxygen2/man markdown expects relative paths from here
   fs::path_rel(res, start = "man/figures")
@@ -402,7 +400,8 @@ glue_regexp_snaps <- function(name = NULL, auto_numbered = TRUE) {
 #' Read in screenshot.
 #' If several, animate into a gif.
 #' Frames of different sizes start at the top left
-#' of a transparent canvas as large as the largest frame.
+#' of a transparent canvas as large as the largest frame,
+#' which magick clears between frames.
 #' @param snaps
 #' Vector of file names, as returned by [dir_ls_snaps()]
 #' @param fps
@@ -412,12 +411,7 @@ glue_regexp_snaps <- function(name = NULL, auto_numbered = TRUE) {
 #' @inheritDotParams magick::image_animate
 #' @return For [image_animate_snaps()] A `magick-image`.
 #' @export
-image_animate_snaps <- function(
-  snaps = fs::path(),
-  fps = 1,
-  dispose = "background",
-  ...
-) {
+image_animate_snaps <- function(snaps = fs::path(), fps = 1, ...) {
   if (!all(fs::file_exists(snaps))) {
     rlang::abort("File could not be found.")
   }
@@ -435,7 +429,7 @@ image_animate_snaps <- function(
     gravity = "northwest",
     color = "none"
   )
-  magick::image_animate(res, fps = fps, dispose = dispose, ...)
+  magick::image_animate(res, fps = fps, ...)
 }
 
 #' @describeIn get_screenshot_from_snaps

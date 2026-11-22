@@ -262,7 +262,6 @@ display_trees <- function(server_args, effective_args, returns) {
 #' double-counter
 #' TRUE
 #' linux
-#' 1
 #'
 #' @param module_ui,module_server
 #' Module functions.

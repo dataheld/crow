@@ -15,9 +15,11 @@
 #' Unless you pass `screenshot_args`,
 #' screenshots of the testbeds [module2app()] and [module2app_bare()]
 #' show only the module UI,
-#' with everything it shows outside its own box,
+#' with what its elements show outside its own box,
 #' such as open dropdown menus,
 #' but without what scroll containers hide.
+#' They leave out popups that shiny and bslib add to the page body,
+#' such as date pickers, tooltips, popovers and modals.
 #' The driver measures the module in the browser at each screenshot,
 #' so it never calls `app` in the R process of your tests.
 #'
@@ -29,7 +31,7 @@
 #' @param screenshot_args
 #' Passed to `shinytest2::AppDriver$new()`.
 #' If you pass it,
-#' the driver does not measure testbed modules (see the section below).
+#' the driver does not measure testbed modules.
 #' @param notifications
 #' Whether screenshots of testbed modules include notifications
 #' (see [shiny::showNotification()]),
@@ -66,7 +68,9 @@ local_app_driver <- function(
   driver
 }
 
-CrowAppDriver <- R6::R6Class(
+#' @importFrom R6 R6Class
+#' @noRd
+CrowAppDriver <- R6Class(
   "CrowAppDriver",
   inherit = shinytest2::AppDriver,
   cloneable = FALSE,
@@ -90,6 +94,11 @@ CrowAppDriver <- R6::R6Class(
       delay = rlang::missing_arg(),
       selector = rlang::missing_arg()
     ) {
+      # the module can change during the delay, so measure after it
+      if (!rlang::is_missing(delay)) {
+        Sys.sleep(delay)
+        delay <- 0
+      }
       self$get_js(screenshot_js("crowSettle()"))
       if (
         private$crow_measure &&
