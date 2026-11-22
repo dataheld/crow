@@ -19,11 +19,6 @@ test_that("runs app factories only in the app's process", {
 })
 
 describe("screenshots of testbed modules", {
-  screenshot_size <- function(driver) {
-    path <- withr::local_tempfile(fileext = ".png")
-    driver$get_screenshot(file = path)
-    unlist(magick::image_info(magick::image_read(path))[c("width", "height")])
-  }
   module_app <- function(ui, server = NULL, ...) {
     local_app_driver(
       shinytest2_app_fn(

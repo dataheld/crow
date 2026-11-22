@@ -104,7 +104,10 @@ CrowAppDriver <- R6::R6Class(
         if (!is.null(cliprect)) {
           # chromote ignores the selector for a cliprect,
           # but shinytest2 replaces the cliprect without one
-          screenshot_args <- list(cliprect = unlist(cliprect), selector = "html")
+          screenshot_args <- list(
+            cliprect = unlist(cliprect),
+            selector = "html"
+          )
         }
       }
       super$get_screenshot(
